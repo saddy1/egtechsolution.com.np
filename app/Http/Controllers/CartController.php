@@ -145,9 +145,11 @@ public function updateQuantity(Request $request, $id)
 
     $product = Product::findOrFail($cartItem->product_id);
 
-    // If product is completely out of stock
+    // Out of stock entirely
     if ($product->quantity < 1) {
-        return back()->withErrors(['quantity' => 'This item is currently out of stock.']);
+        return back()->withErrors([
+            "qty_{$id}" => 'This item is currently out of stock.',
+        ]);
     }
 
     $maxPerOrder = min(5, $product->quantity);
@@ -157,21 +159,21 @@ public function updateQuantity(Request $request, $id)
             $cartItem->quantity++;
         } else {
             return back()->withErrors([
-                'quantity' => $product->quantity <= $cartItem->quantity
+                "qty_{$id}" => $product->quantity <= $cartItem->quantity
                     ? 'Out of stock'
                     : "You can order a maximum of {$maxPerOrder} items.",
             ]);
         }
-    } elseif ($request->quantity_action === 'decrease') {
+    } else { // decrease
         if ($cartItem->quantity > 1) {
             $cartItem->quantity--;
         }
     }
 
-    // Double-check against stock
+    // Final guard
     if ($cartItem->quantity > $product->quantity) {
         return back()->withErrors([
-            'quantity' => 'Out of stock',
+            "qty_{$id}" => 'Out of stock',
         ]);
     }
 
@@ -179,6 +181,7 @@ public function updateQuantity(Request $request, $id)
 
     return back()->with('success', 'Quantity updated successfully');
 }
+
 
 
    public function index()

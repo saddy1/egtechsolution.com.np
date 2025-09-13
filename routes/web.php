@@ -36,8 +36,10 @@ Route::post('customer', [GoogleAuthController::class, 'store'])->name('customer.
 Route::get("/admin/orderlist", [AdminController::class, 'orderlist']);
 Route::get("/products/{name}/{id}", [FrontendController::class, 'show']);
 Route::get("show/products", [FrontendController::class, 'index'])->name('products.index');
-Route::get("/", [FrontendController::class, 'index']);
+Route::get("/", [FrontendController::class, 'index'])->name('home') ;
+
 Route::get("/shopping", [FrontendController::class, 'shop'])->name('shop');
+
 Route::middleware(['auth'])->group(function () {
     Route::post('cart/add', [CartController::class, 'add'])->name('cart.add');
     Route::post('cart/remove', [CartController::class, 'remove'])->name('cart.remove');

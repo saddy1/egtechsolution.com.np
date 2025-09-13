@@ -12,6 +12,7 @@ use App\Models\Customer;
 use Dotenv\Parser\Lines;
 use League\CommonMark\Node\Inline\Newline;
 use App\Http\Controllers\BackendController;
+use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Cart;
 use App\Models\User;
@@ -32,59 +33,95 @@ class FrontendController extends Controller
         return $cartCount;
     }
     public function index(Request $request)
-{
-    $cartCount = $this->getCartCount();
-    $search = trim($request->get('search', ''));
+    {
+        $cartCount = $this->getCartCount();
 
-    // Distinct brand and category IDs
-    $brand = Product::distinct('brand_id')->pluck('brand_id');
-    $category = Product::distinct('category_id')->pluck('category_id');
+        // ----- Inputs -----
+        $search  = trim($request->get('search', ''));
+        $catIds  = array_map('intval', (array) $request->get('category', []));
+        $maxFromDb = (int) Product::max('price') ?: 0;
+        $maxPrice  = (int) $request->get('max_price', $maxFromDb);
 
-    if ($brand->isEmpty()) {
-        $brand = collect(['NULL']);
-    }
+        // ----- Filters ON? -----
+        $hasFilters = $search !== '' || !empty($catIds) || $request->filled('max_price');
 
-    if ($category->isEmpty()) {
-        $category = collect(['NULL']);
-    }
-
-    if ($search !== '') {
-        $banners = Banner::orderBy('created_at', 'desc')->get();
-        $products = Product::with(['brand:id,name','category:id,name'])
-            ->where('name', 'LIKE', "%{$search}%")
-            ->orWhere('description', 'LIKE', "%{$search}%")
-            ->orWhereHas('brand', fn($q) => $q->where('name', 'LIKE', "%{$search}%"))
-            ->orWhereHas('category', fn($q) => $q->where('name', 'LIKE', "%{$search}%"))
-            ->paginate(8);
-
-        return view('frontend.search', compact(
-            'products', 'banners', 'category', 'search', 'cartCount'
-        ));
-    } else {
-        $products = Product::with(['brand:id,name','category:id,name'])
-            ->latest()
+        // Common data for sidebar
+        $categories = Category::withCount('products')
+            ->orderBy('name')
             ->get();
 
+        // Banners
+        $banners = Banner::orderBy('created_at', 'desc')->get();
+        $brands = Brand::withCount('products')->get();
+        $selectedBrandIds = $request->get('brand', []);
+
+
+        if ($hasFilters) {
+            // Build filtered products query
+            $products = Product::with(['brand:id,name', 'category:id,name'])
+                ->when($search !== '', function ($q) use ($search) {
+                    $q->where(function ($qq) use ($search) {
+                        $qq->where('name', 'like', "%{$search}%")
+                            ->orWhere('description', 'like', "%{$search}%")
+                            ->orWhereHas('brand', fn($b) => $b->where('name', 'like', "%{$search}%"))
+                            ->orWhereHas('category', fn($c) => $c->where('name', 'like', "%{$search}%"));
+                    });
+                })
+                ->when(!empty($catIds), fn($q) => $q->whereIn('category_id', $catIds))
+                ->when($request->filled('max_price'), fn($q) => $q->where('price', '<=', $maxPrice))
+                ->orderByDesc('created_at')
+                ->paginate(12)
+                ->withQueryString();
+
+            // Render the SEARCH page (sidebar + results)
+            return view('frontend.search', [
+                'products'            => $products,
+                'banners'             => $banners,
+                'categories'          => $categories,
+                'selectedCategoryIds' => $catIds,
+                'brands'          => $brands,
+                'selectedBrandIds' => $selectedBrandIds,
+                'maxFromDb'           => $maxFromDb,
+                'maxPrice'            => $maxPrice,
+                'search'              => $search,
+                'cartCount'           => $cartCount,
+            ]);
+        }
+
+        // ----- No filters -> render homepage/index as usual -----
+        $products = Product::with(['brand:id,name', 'category:id,name'])->latest()->get();
         $Randproducts = Product::inRandomOrder()->limit(8)->get();
+        $featuredProducts = Product::where('is_featured', true)->where('is_active', true)->take(8)->get();
 
-        // ✅ Featured products
-        $featuredProducts = Product::where('is_featured', true)
-            ->where('is_active', true)
-            ->take(8)
-            ->get();
-
-        $banners = Banner::orderBy('created_at', 'desc')->get();
-
-        // ✅ SEO data
+        // SEO
         $meta_title = "Buy Electronics, Gadgets, and More | EG Tech Solution";
         $meta_description = "Shop the latest electronics, laptops, mobiles, and gadgets at the best prices. Enjoy discounts, featured deals, and fast delivery from EG Tech Solution.";
 
+        // If you still need brand/category ids for homepage:
+        $brand = Product::distinct('brand_id')->pluck('brand_id');
+        $categoryIds = Product::distinct('category_id')->pluck('category_id');
+        $selectedCategoryIds = $selectedCategoryIds ?? (array) request('category', []);
+
         return view('frontend.index', compact(
-            'Randproducts', 'products', 'featuredProducts', 'banners',
-            'category', 'brand', 'cartCount', 'meta_title', 'meta_description'
+            'Randproducts',
+            'products',
+            'featuredProducts',
+            'banners',
+            'categoryIds',
+            'brands',
+            'selectedBrandIds',
+            'cartCount',
+            'meta_title',
+            'meta_description',
+            'maxPrice',
+            'maxFromDb',
+            'hasFilters',
+            'categories',
+            'selectedCategoryIds'
         ));
     }
-}
+
+
 
 
     public function login()
@@ -139,7 +176,7 @@ class FrontendController extends Controller
 
 
     // app/Http/Controllers/ProductController.php
-     public function show(string $slug)
+    public function show(string $slug)
     {
         $product = Product::with(['brand:id,name', 'category:id,name', 'specifications'])
             ->where('slug', $slug)
@@ -163,7 +200,11 @@ class FrontendController extends Controller
         $meta_description = $product->meta_description ?: str($product->description)->limit(155);
 
         return view('frontend.show', compact(
-            'product', 'related', 'maxPerOrder', 'meta_title', 'meta_description'
+            'product',
+            'related',
+            'maxPerOrder',
+            'meta_title',
+            'meta_description'
         ));
     }
     public function shop()

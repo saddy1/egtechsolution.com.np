@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const prev  = root.querySelector('[data-carousel-prev]');
     const next  = root.querySelector('[data-carousel-next]');
     const autoplay = root.getAttribute('data-autoplay') !== 'false';
-    const intervalMs = parseInt(root.getAttribute('data-interval') || '3000', 10);
+    const intervalMs = parseInt(root.getAttribute('data-interval') || '1000', 10);
 
     if (!items.length) return;
     let index = Math.max(
