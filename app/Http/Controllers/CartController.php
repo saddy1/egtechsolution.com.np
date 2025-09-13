@@ -8,11 +8,54 @@ use App\Models\Cart;
 use App\Models\Product;
 use App\Models\Order;
 use App\Models\OrderItem;
+use Illuminate\Support\Facades\Storage;
+
 use Illuminate\Support\Str;
 
 
 class CartController extends Controller
 {
+
+ public function show()
+{
+    $user = Auth::user();
+    $cartItems = Cart::where('user_id', $user->id)->get();
+    $isEmptyCart = $cartItems->isEmpty();
+
+    $products = $cartItems->map(function ($item) {
+        $p = Product::find($item->product_id);
+
+        $unit = $p ? (float) ($p->final_price ?? $p->price ?? 0) : 0; // <- use final_price
+        $imageUrl = $p->image;
+        return [
+            'id'         => $item->id,           // cart row id
+            'product_id' => $item->product_id,
+            'name'       => $p?->name ?? 'N/A',
+            'rate'       => $unit,               // <- now correct
+            'quantity'   => $item->quantity,
+            'total'      => $unit * $item->quantity,
+            'available'  => (int)($p?->quantity ?? 0),
+            'image_url'  => $imageUrl,
+        ];
+    });
+
+    $subtotal = $products->sum('total');
+    $total    = $subtotal;
+
+    $orders = Order::where('user_id', $user->id)
+        ->with('items')
+        ->orderByDesc('created_at')->take(10)->get();
+
+    return view('frontend.cart', [
+        'products'    => $products,
+        'isEmptyCart' => $isEmptyCart,
+        'subtotal'    => number_format($subtotal, 2),
+        'total'       => number_format($total, 2),
+        'orders'      => $orders,
+    ]);
+}
+
+
     public function add(Request $request)
 {
     $user = Auth::user();
@@ -69,43 +112,7 @@ class CartController extends Controller
 }
 
 
-    public function show()
-{
-    $user = Auth::user();
-    $cartItems = Cart::where('user_id', $user->id)->get();
-    $isEmptyCart = $cartItems->isEmpty();
 
-    // Get the product details for each cart item
-    $products = $cartItems->map(function ($item) {
-        $product = Product::find($item->product_id);
-        return [
-            'id' => $item->id,
-            'name' => $product->name,
-            'rate' => $product->rate,
-            'quantity' => $item->quantity,
-            'total' => $product->rate * $item->quantity,
-        ];
-    });
-
-    // Calculate subtotal and total
-    $subtotal = $products->sum('total');
-    $total = $subtotal;
-
-    // Fetch past orders for the user
-    $orders = Order::where('user_id', $user->id)
-    ->with('items') // Eager load related items
-    ->take(10)
-    ->orderBy('created_at', 'desc') // Sort by creation date, newest first
-    ->get();
-
-    return view('frontend.cart', [
-        'products' => $products,
-        'isEmptyCart' => $isEmptyCart,
-        'subtotal' => number_format($subtotal, 2),
-        'total' => number_format($total, 2),
-        'orders' => $orders,
-    ]);
-}
 
     public function remove(Request $request)
     {
@@ -174,32 +181,33 @@ public function updateQuantity(Request $request, $id)
 }
 
 
-    public function index()
-    {
-        $user = Auth::user();
-        $cartItems = Cart::where('user_id', $user->id)->get();
+   public function index()
+{
+    $user = Auth::user();
+    $cartItems = Cart::where('user_id', $user->id)->get();
 
-        // Map product details to cart items
-        $cartItems = $cartItems->map(function ($item) {
-            $product = Product::find($item->product_id);
-            return [
-                'id' => $item->id,
-                'name' => $product->name,
-                'rate' => $product->rate,
-                'quantity' => $item->quantity,
-                'total' => $product->rate * $item->quantity,
-            ];
-        });
+    $cartItems = $cartItems->map(function ($item) {
+        $p = Product::find($item->product_id);
+        $unit = $p ? (float) ($p->final_price ?? $p->price ?? 0) : 0;
 
-        $subtotal = $cartItems->sum('total');
-        $total = $subtotal;
+        return [
+            'id'       => $item->id,
+            'name'     => $p?->name ?? 'N/A',
+            'rate'     => $unit, // <- use final price
+            'quantity' => $item->quantity,
+            'total'    => $unit * $item->quantity,
+        ];
+    });
 
-        return view('frontend.checkout', [
-            'cartItems' => $cartItems,
-            'subtotal' => number_format($subtotal, 2),
-            'total' => number_format($total, 2),
-        ]);
-    }
+    $subtotal = $cartItems->sum('total');
+    $total    = $subtotal;
+
+    return view('frontend.checkout', [
+        'cartItems' => $cartItems,
+        'subtotal'  => number_format($subtotal, 2),
+        'total'     => number_format($total, 2),
+    ]);
+}
 
     public function store(Request $request)
     {

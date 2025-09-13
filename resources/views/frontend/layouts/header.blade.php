@@ -15,6 +15,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com">
 
     @stack('head')
+    <title>@yield('title', 'Default Title')</title>
+<meta name="description" content="@yield('meta_description', 'Default description')">
+
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>

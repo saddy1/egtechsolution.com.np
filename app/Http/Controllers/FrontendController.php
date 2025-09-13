@@ -32,38 +32,60 @@ class FrontendController extends Controller
         return $cartCount;
     }
     public function index(Request $request)
-    {
-        $cartCount = $this->getCartCount();
-        $search = $request['search'] ?? "";
-        $brand = Product::distinct('brand_id')->pluck('brand_id');
-        $category = Product::distinct('category_id')->pluck('category_id');
+{
+    $cartCount = $this->getCartCount();
+    $search = trim($request->get('search', ''));
 
-        // Ensure we always have at least one "NULL" option
-        if ($brand->isEmpty()) {
-            $brand = collect(['NULL']);
-        }
+    // Distinct brand and category IDs
+    $brand = Product::distinct('brand_id')->pluck('brand_id');
+    $category = Product::distinct('category_id')->pluck('category_id');
 
-        if ($category->isEmpty()) {
-            $category = collect(['NULL']);
-        }
-
-
-        if ($search != "") {
-            $banners = Banner::orderBy('created_at', 'desc')->get();
-            $products = Product::where('name', 'LIKE', "%$search%")
-                ->orWhere('brand', 'LIKE', "%$search%")
-                ->orWhere('rate', 'LIKE', "%$search%")
-                ->orWhere('description', 'LIKE', "%$search%")
-                ->orWhere('category', 'LIKE', "%$search%")
-                ->paginate(8);
-            return view('frontend.search', compact('products', 'banners', 'category', 'search', 'cartCount'));
-        } else {
-            $products = Product::orderBy('created_at', 'desc')->get();
-            $Randproducts = Product::inRandomOrder()->limit(8)->get();
-            $banners = Banner::orderBy('created_at', 'desc')->get();
-            return view('frontend.index', compact('Randproducts', 'products', 'banners', 'category', 'brand', 'cartCount'));
-        }
+    if ($brand->isEmpty()) {
+        $brand = collect(['NULL']);
     }
+
+    if ($category->isEmpty()) {
+        $category = collect(['NULL']);
+    }
+
+    if ($search !== '') {
+        $banners = Banner::orderBy('created_at', 'desc')->get();
+        $products = Product::with(['brand:id,name','category:id,name'])
+            ->where('name', 'LIKE', "%{$search}%")
+            ->orWhere('description', 'LIKE', "%{$search}%")
+            ->orWhereHas('brand', fn($q) => $q->where('name', 'LIKE', "%{$search}%"))
+            ->orWhereHas('category', fn($q) => $q->where('name', 'LIKE', "%{$search}%"))
+            ->paginate(8);
+
+        return view('frontend.search', compact(
+            'products', 'banners', 'category', 'search', 'cartCount'
+        ));
+    } else {
+        $products = Product::with(['brand:id,name','category:id,name'])
+            ->latest()
+            ->get();
+
+        $Randproducts = Product::inRandomOrder()->limit(8)->get();
+
+        // ✅ Featured products
+        $featuredProducts = Product::where('is_featured', true)
+            ->where('is_active', true)
+            ->take(8)
+            ->get();
+
+        $banners = Banner::orderBy('created_at', 'desc')->get();
+
+        // ✅ SEO data
+        $meta_title = "Buy Electronics, Gadgets, and More | EG Tech Solution";
+        $meta_description = "Shop the latest electronics, laptops, mobiles, and gadgets at the best prices. Enjoy discounts, featured deals, and fast delivery from EG Tech Solution.";
+
+        return view('frontend.index', compact(
+            'Randproducts', 'products', 'featuredProducts', 'banners',
+            'category', 'brand', 'cartCount', 'meta_title', 'meta_description'
+        ));
+    }
+}
+
 
     public function login()
     {
@@ -117,12 +139,32 @@ class FrontendController extends Controller
 
 
     // app/Http/Controllers/ProductController.php
-    public function show($name, $id)
+     public function show(string $slug)
     {
-        //  $name = str_replace('-', ' ', $name);
-        $product = Product::with('specifications')->findOrFail($id);
-        $category = Product::distinct('category')->pluck('category');
-        return view('frontend.show', compact('product', 'category'));
+        $product = Product::with(['brand:id,name', 'category:id,name', 'specifications'])
+            ->where('slug', $slug)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        // Max per order: up to 5, but not more than stock
+        $maxPerOrder = min(5, max(0, (int) $product->quantity));
+
+        // Related products (you may also like): same category, exclude current
+        $related = Product::with(['brand:id,name'])
+            ->where('is_active', true)
+            ->where('category_id', $product->category_id)
+            ->where('id', '!=', $product->id)
+            ->inRandomOrder()
+            ->take(4)
+            ->get();
+
+        // SEO
+        $meta_title = $product->meta_title ?: "{$product->name} | EG Tech Solution";
+        $meta_description = $product->meta_description ?: str($product->description)->limit(155);
+
+        return view('frontend.show', compact(
+            'product', 'related', 'maxPerOrder', 'meta_title', 'meta_description'
+        ));
     }
     public function shop()
     {

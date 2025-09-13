@@ -2,71 +2,12 @@
 @push('head')
     <title>EG Tech Solution</title>
 @endpush
+@section('title', $meta_title)
+@section('meta_description', $meta_description)
+
 
 @section('content')
 
-
-    {{-- Banner Section Start --}}
-
-    {{-- <div id="banner-carousel" class="relative w-full" data-carousel="slide" data-autoplay="true" data-interval="6000">
-        <!-- Carousel wrapper -->
-        <div class="relative h-64 sm:h-80 md:h-[80vh] lg:h-[100vh] overflow-hidden">
-            <!-- Item 1 -->
-            <div class="hidden duration-700 ease-in-out" data-carousel-item>
-                <img src="{{ asset('assets/banner5.jpg') }}"
-                    class="absolute block w-full h-full object-contain md:object-cover top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black"
-                    alt="Banner 1">
-            </div>
-            <!-- Item 2 -->
-            <div class="hidden duration-700 ease-in-out" data-carousel-item>
-                <img src="{{ asset('assets/banner2.jpg') }}"
-                    class="absolute block w-full h-full object-contain md:object-cover top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black"
-                    alt="Banner 2">
-            </div>
-            <!-- Item 3 -->
-            <div class="hidden duration-700 ease-in-out" data-carousel-item>
-                <img src="{{ asset('assets/banner3.jpg') }}"
-                    class="absolute block w-full h-full object-contain md:object-cover top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black"
-                    alt="Banner 3">
-            </div>
-        </div>
-
-        <!-- Indicators -->
-        <div class="absolute z-30 flex -translate-x-1/2 bottom-4 left-1/2 space-x-2">
-            <button type="button" class="w-3 h-3 rounded-full bg-white/50" aria-current="true" aria-label="Slide 1"
-                data-carousel-slide-to="0"></button>
-            <button type="button" class="w-3 h-3 rounded-full bg-white/30" aria-current="false" aria-label="Slide 2"
-                data-carousel-slide-to="1"></button>
-            <button type="button" class="w-3 h-3 rounded-full bg-white/30" aria-current="false" aria-label="Slide 3"
-                data-carousel-slide-to="2"></button>
-        </div>
-
-        <!-- Controls -->
-        <button type="button"
-            class="absolute top-0 start-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
-            data-carousel-prev>
-            <span
-                class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/30 group-hover:bg-white/50 group-focus:ring-4 group-focus:ring-white">
-                <svg class="w-4 h-4 text-white" viewBox="0 0 6 10" fill="none">
-                    <path d="M5 1 1 5l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                </svg>
-                <span class="sr-only">Previous</span>
-            </span>
-        </button>
-        <button type="button"
-            class="absolute top-0 end-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
-            data-carousel-next>
-            <span
-                class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/30 group-hover:bg-white/50 group-focus:ring-4 group-focus:ring-white">
-                <svg class="w-4 h-4 text-white" viewBox="0 0 6 10" fill="none">
-                    <path d="m1 9 4-4-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                </svg>
-                <span class="sr-only">Next</span>
-            </span>
-        </button>
-    </div> --}}
 
 
 
@@ -161,6 +102,7 @@
 
 
 
+{{-- 🔹 Featured Products --}}
 <section class="py-12 bg-gray-50">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Heading -->
@@ -171,39 +113,57 @@
 
     <!-- Products grid -->
     <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-      @foreach(range(1, 8) as $i) {{-- Replace this with $products --}}
+      @forelse($featuredProducts as $product)
         <div class="group relative bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition overflow-hidden">
           <!-- Product image -->
-          <div class="aspect-w-1 aspect-h-1 w-full overflow-hidden bg-gray-100">
-            <img src="https://via.placeholder.com/300x200?text=Product+{{ $i }}" 
-                 alt="Product {{ $i }}" 
+          <div class="aspect-w-1 aspect-h-1 w-full overflow-hidden bg-gray-100 relative">
+            <img src="{{ asset('storage/product/'.$product->image) }}" alt="{{ $product->image }}"
                  class="h-40 sm:h-48 md:h-56 w-full object-cover transition-transform duration-300 group-hover:scale-105">
-            <div class="absolute top-3 left-3">
-              <span class="inline-flex items-center rounded-md bg-red-500 px-2 py-1 text-xs font-semibold text-white shadow">
-                -20%
-              </span>
-            </div>
+            
+            @if($product->sale_price && $product->sale_price < $product->price)
+              <div class="absolute top-3 left-3">
+                <span class="inline-flex items-center rounded-md bg-red-500 px-2 py-1 text-xs font-semibold text-white shadow">
+                  -{{ number_format((($product->price - $product->sale_price) / $product->price) * 100) }}%
+                </span>
+              </div>
+            @endif
           </div>
 
           <!-- Product info -->
           <div class="p-3 sm:p-4">
             <h3 class="text-xs sm:text-sm font-semibold text-gray-900 group-hover:text-indigo-600 truncate">
-              Product {{ $i }}
+              
+              <a href="{{ url('/products/' . $product->slug . '/' . $product->id) }}">{{ $product->name }}</a>
             </h3>
             <div class="mt-1 flex items-center gap-2">
-              <span class="text-sm sm:text-base font-bold text-indigo-600">Rs. {{ number_format(9999, 0) }}</span>
-              <span class="text-xs sm:text-sm line-through text-gray-400">Rs. {{ number_format(12499, 0) }}</span>
+              <span class="text-sm sm:text-base font-bold text-indigo-600">
+                Rs. {{ number_format($product->final_price, 0) }}
+              </span>
+              @if($product->sale_price && $product->sale_price < $product->price)
+                <span class="text-xs sm:text-sm line-through text-gray-400">
+                  Rs. {{ number_format($product->price, 0) }}
+                </span>
+              @endif
             </div>
-            <p class="mt-1 text-[10px] sm:text-xs text-gray-500">In stock</p>
+            <p class="mt-1 text-[10px] sm:text-xs text-gray-500">
+              {{ $product->stock_status === 'in_stock' ? 'In stock' : 'Out of stock' }}
+            </p>
 
             <!-- CTA -->
-            <a href="#"
-               class="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-semibold text-white shadow hover:bg-indigo-700">
-              Add to Cart
-            </a>
+            <form action="{{ route('cart.add') }}" method="POST" class="mt-3">
+              @csrf
+              <input type="hidden" name="product_id" value="{{ $product->id }}">
+              <input type="hidden" name="quantity" value="1">
+              <button type="submit"
+                      class="inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-semibold text-white shadow hover:bg-indigo-700">
+                Add to Cart
+              </button>
+            </form>
           </div>
         </div>
-      @endforeach
+      @empty
+        <p class="col-span-4 text-center text-gray-500">No featured products available right now.</p>
+      @endforelse
     </div>
   </div>
 </section>
@@ -211,51 +171,7 @@
 
 
 
-    {{-- Product Section --}}
-    <section class="py-12 bg-gray-50">
-        <div class="container mx-auto px-4">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold">New Arrival</h2>
-                <h5 class="text-green-600">Our Collection</h5>
-            </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
-                @foreach ($products->take(16) as $row)
-                    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg transition">
-                        <a href="{{ url('/products/' . str_replace(' ', '-', $row->name) . '/' . $row->id) }}">
-                            <img src="{{ asset('assets/product/' . $row->name . '.png') }}" alt="{{ $row->name }}"
-                                class="w-full h-40 object-contain mb-3">
-                        </a>
-
-                        <div class="flex justify-between items-center mb-2">
-
-
-
-                            <span class="text-green-600 font-bold">Rs.{{ formatNepaliCurrency($row->rate) }}</span>
-
-                            <span class="bg-red-500 text-white text-xs px-2 py-1 rounded">
-                                {{ number_format(($row->discount / $row->rate) * 100, 0) }}% Off
-                            </span>
-                        </div>
-
-                        <a href="{{ url('/products/' . str_replace(' ', '-', $row->name) . '/' . $row->id) }}">
-                            <h5 class="text-sm font-semibold text-gray-800">
-                                {{ Str::limit($row->name, 40, '...') }}
-                            </h5>
-                        </a>
-
-                        {{-- Rating --}}
-                        <div class="flex mt-2 text-yellow-400 text-sm">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star text-gray-300"></i>
-                            <i class="fas fa-star text-gray-300"></i>
-                            <i class="fas fa-star text-gray-300"></i>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    </section>
+ 
 @endsection
 
