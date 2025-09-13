@@ -59,10 +59,12 @@
                     <i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
                 <li><a href="{{ route('product.index') }}" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
                     <i class="fas fa-box"></i><span>Products</span></a></li>
-                <li><a href="#categories" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
+                <li><a href="{{ route('categories.index')}}" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
                     <i class="fas fa-tags"></i><span>Categories</span></a></li>
-                <li><a href="#brands" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
+                <li><a href=" {{route('brand.index') }}" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
                     <i class="fas fa-star"></i><span>Brands</span></a></li>
+                     <li><a href=" {{route('banner.index') }}" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
+                    <i class="fas fa-star"></i><span>Banners</span></a></li>
                 <li><a href="#orders" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
                     <i class="fas fa-shopping-cart"></i><span>Orders</span></a></li>
                 <li><a href="#stock" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">

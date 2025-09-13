@@ -35,8 +35,8 @@ class FrontendController extends Controller
     {
         $cartCount = $this->getCartCount();
         $search = $request['search'] ?? "";
-        $brand = Product::distinct('brand')->pluck('brand');
-        $category = Product::distinct('category')->pluck('category');
+        $brand = Product::distinct('brand_id')->pluck('brand_id');
+        $category = Product::distinct('category_id')->pluck('category_id');
 
         // Ensure we always have at least one "NULL" option
         if ($brand->isEmpty()) {
@@ -49,19 +49,19 @@ class FrontendController extends Controller
 
 
         if ($search != "") {
-            $banner = Banner::orderBy('created_at', 'desc')->get();
+            $banners = Banner::orderBy('created_at', 'desc')->get();
             $products = Product::where('name', 'LIKE', "%$search%")
                 ->orWhere('brand', 'LIKE', "%$search%")
                 ->orWhere('rate', 'LIKE', "%$search%")
                 ->orWhere('description', 'LIKE', "%$search%")
                 ->orWhere('category', 'LIKE', "%$search%")
                 ->paginate(8);
-            return view('frontend.search', compact('products', 'banner', 'category', 'search', 'cartCount'));
+            return view('frontend.search', compact('products', 'banners', 'category', 'search', 'cartCount'));
         } else {
             $products = Product::orderBy('created_at', 'desc')->get();
             $Randproducts = Product::inRandomOrder()->limit(8)->get();
-            $banner = Banner::orderBy('created_at', 'desc')->get();
-            return view('frontend.index', compact('Randproducts', 'products', 'banner', 'category', 'brand', 'cartCount'));
+            $banners = Banner::orderBy('created_at', 'desc')->get();
+            return view('frontend.index', compact('Randproducts', 'products', 'banners', 'category', 'brand', 'cartCount'));
         }
     }
 

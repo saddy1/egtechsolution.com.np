@@ -6,7 +6,10 @@ use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\OrderController;
-
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\BrandController;
+use App\Http\Controllers\BannerController;  
+use App\Http\Controllers\ProductsController;
 
 use App\Http\Controllers\UserController;
 
@@ -32,7 +35,7 @@ Route::get('customer', [GoogleAuthController::class, 'signup'])->name('customer.
 Route::post('customer', [GoogleAuthController::class, 'store'])->name('customer.store');
 Route::get("/admin/orderlist", [AdminController::class, 'orderlist']);
 Route::get("/products/{name}/{id}", [FrontendController::class, 'show']);
-Route::get("/products", [FrontendController::class, 'index'])->name('products.index');
+Route::get("show/products", [FrontendController::class, 'index'])->name('products.index');
 Route::get("/", [FrontendController::class, 'index']);
 Route::get("/shopping", [FrontendController::class, 'shop'])->name('shop');
 Route::middleware(['auth'])->group(function () {
@@ -56,15 +59,12 @@ Route::get("/admin", [AdminController::class, 'index']);
 Route::post("/admin", [AdminController::class, 'dashboard'])->name('admin');
 Route::middleware(['admin'])->group(function () {
     Route::delete('/admin/product/{id}', [AdminController::class, 'destroy'])->name('product.destroy');
-    Route::resource('brand', App\Http\Controllers\BrandController::class);
-    Route::resource('product', App\Http\Controllers\ProductController::class);
-    Route::resource('category', App\Http\Controllers\CategoryController::class);
-    Route::resource('banner', App\Http\Controllers\BannerController::class);
+    Route::resource('brands', BrandController::class);
+    Route::resource('product', ProductsController::class);
+    Route::resource('banner', BannerController::class);
     Route::post("/admin/logout", [AdminController::class, 'logout'])->name('order.list');
-    Route::resource('brand', App\Http\Controllers\BrandController::class);
-    Route::resource('product', App\Http\Controllers\ProductController::class);
-    Route::resource('category', App\Http\Controllers\CategoryController::class);
-    Route::resource('banner', App\Http\Controllers\BannerController::class);
+    Route::resource('brand', BrandController::class);
+    Route::resource('categories', CategoryController::class);
     Route::post("/admin/logout", [AdminController::class, 'logout'])->name('order.list');
 
 
