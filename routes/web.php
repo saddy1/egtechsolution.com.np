@@ -58,16 +58,16 @@ Route::middleware(['auth'])->group(function () {
 
 #Backend Section
 Route::get("/admin", [AdminController::class, 'index']);
-Route::post("/admin", [AdminController::class, 'dashboard'])->name('admin');
+Route::post("/admin", [AdminController::class, 'login'])->name('admin');
 Route::middleware(['admin'])->group(function () {
+    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::delete('/admin/product/{id}', [AdminController::class, 'destroy'])->name('product.destroy');
     Route::resource('brands', BrandController::class);
     Route::resource('product', ProductsController::class);
     Route::resource('banner', BannerController::class);
-    Route::post("/admin/logout", [AdminController::class, 'logout'])->name('order.list');
     Route::resource('brand', BrandController::class);
     Route::resource('categories', CategoryController::class);
-    Route::post("/admin/logout", [AdminController::class, 'logout'])->name('order.list');
+    Route::post("/admin/logout", [AdminController::class, 'logout'])->name('admin.logout');
 
 
     Route::get('/orders', [OrderController::class, 'index'])->name('admin.orders');

@@ -90,7 +90,7 @@
             {{-- ===== 80% Banners (8/10 on lg+) ===== --}}
             <div class="lg:col-span-8">
                 <section class="relative w-full">
-                    <div id="hero" class="relative overflow-hidden rounded-2xl ring-1 ring-slate-200 bg-white"
+                    <div id="hero" class="relative overflow-hidden  ring-1 ring-slate-200 bg-white"
                         data-carousel="slide" data-autoplay="true" data-interval="2000">
                         <div class="relative">
                             @forelse($banners as $i => $b)

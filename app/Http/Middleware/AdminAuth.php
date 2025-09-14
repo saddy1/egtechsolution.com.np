@@ -8,9 +8,8 @@ class AdminAuth
 {
     public function handle($request, Closure $next)
     {
-        // Check if the user is authenticated as an admin
         if (!Auth::guard('admin')->check()) {
-            return redirect('/admin')->with('error', 'You are not allowed to access this page.');
+            return redirect('/admin')->with('error', 'Please login as admin first.');
         }
 
         return $next($request);

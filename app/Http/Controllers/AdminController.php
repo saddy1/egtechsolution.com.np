@@ -1,37 +1,48 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Models\ProductSell;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-use App\Models\Product;
 
 class AdminController extends Controller
 {
     public function index()
     {
-        // Check if the admin is already logged in
+        // If already logged in, redirect to dashboard
         if (Auth::guard('admin')->check()) {
-            return view('backend.home');
+            return redirect()->route('admin.dashboard');
         }
 
-        return view('frontend.admin.index'); // This should be the login page
+        return view('frontend.admin.index'); // Admin login page
     }
 
-    public function dashboard(Request $request)
+public function login(Request $request)
+{
+    // Validate credentials
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
+
+    $credentials = $request->only('email', 'password');
+
+    if (Auth::guard('admin')->attempt($credentials)) {
+        $request->session()->regenerate(); // Prevent session fixation
+
+        // ✅ Store admin user in session
+        $admin = Auth::guard('admin')->user();
+        $request->session()->put('admin', $admin);
+
+        return redirect()->route('admin.dashboard');
+    }
+
+    return back()->with('error', 'Invalid email or password');
+}
+
+
+    public function dashboard()
     {
-        // Validate the login credentials
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        $credentials = $request->only('email', 'password');
-
-        if (auth()->guard('admin')->attempt($credentials)) {
-            return view('backend.home'); 
-        }
-        return redirect()->back()->withErrors('error', 'Invalid email or password');
+        return view('backend.home');
     }
 
     public function logout(Request $request)
@@ -39,8 +50,7 @@ class AdminController extends Controller
         Auth::guard('admin')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect('/admin');
     }
-
-    
 }
