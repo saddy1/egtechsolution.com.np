@@ -38,6 +38,9 @@ return new class extends Migration
             // SEO
             $table->string('meta_title')->nullable();
             $table->text('meta_description')->nullable();
+
+            //Keywords
+            $table->text('keywords')->nullable();
             
             // Product management
             $table->string('image')->nullable();

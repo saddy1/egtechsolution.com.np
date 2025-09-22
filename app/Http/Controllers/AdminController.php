@@ -1,8 +1,10 @@
 <?php
 namespace App\Http\Controllers;
-
 use Illuminate\Support\Facades\Auth;
+use App\Services\OpenAIService;
+
 use Illuminate\Http\Request;
+use OpenAI;
 
 class AdminController extends Controller
 {
@@ -53,4 +55,29 @@ public function login(Request $request)
 
         return redirect('/admin');
     }
+
+
+    public function generateSeo(Request $request, OpenAIService $aiService)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'category' => 'nullable|string|max:255',
+            'features' => 'nullable|string|max:5000',
+        ]);
+
+        try {
+            $seo = $aiService->generateSeoData(
+                $validated['name'],
+                $validated['category'] ?? 'General',
+                $validated['features'] ?? ''
+            );
+            return response()->json($seo);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Failed to generate SEO.',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 422);
+        }
+    }
+
 }

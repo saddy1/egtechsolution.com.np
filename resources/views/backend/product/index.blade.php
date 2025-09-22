@@ -50,7 +50,7 @@
                 <td class="px-4 py-3 text-gray-700">{{ $products->firstItem() + $i }}</td>
                 <td class="px-4 py-3">
                   @if($p->image)
-                    <img src="{{ asset('storage/product/'.$p->image) }}" alt="{{ $p->image }}" class="h-12 w-12 rounded object-cover ring-1 ring-gray-200" alt="">
+                    <img src="{{ asset($p->image) }}" alt="{{ $p->image }}" class="h-12 w-12 rounded object-cover ring-1 ring-gray-200" alt="">
                   @else
                     <div class="h-12 w-12 rounded bg-gray-100 ring-1 ring-gray-200"></div>
                   @endif

@@ -37,7 +37,7 @@
               <tr class="hover:bg-gray-50">
                 <td class="px-4 py-3 text-gray-700">{{ $b->id }}</td>
                 <td class="px-4 py-3">
-                  <img src="{{ Storage::url($b->image_path) }}" alt="{{ $b->alt_text ?? $b->name }}"
+                  <img src="{{ asset($b->image_path) }}" alt="{{ $b->alt_text ?? $b->name }}"
                        class="h-16 w-40 rounded-lg object-cover ring-1 ring-gray-200" />
                 </td>
                 <td class="px-4 py-3 font-medium text-gray-900">{{ $b->name }}</td>

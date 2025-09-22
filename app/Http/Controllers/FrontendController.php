@@ -96,7 +96,8 @@ class FrontendController extends Controller
         // SEO
         $meta_title = "Buy Electronics, Gadgets, and More | EG Tech Solution";
         $meta_description = "Shop the latest electronics, laptops, mobiles, and gadgets at the best prices. Enjoy discounts, featured deals, and fast delivery from EG Tech Solution.";
-
+        $meta_keywords = "electronics Nepal, Buy electronics online Nepal, mobiles Nepal, laptop deals Nepal, smartphone accessories Nepal, best electronics shop Nepal, cheap electronics Nepal, gadgets Nepal, laptop price in Nepal, mobile price in Nepal, home appliances Nepal, smart TV Nepal, refrigerator deals Nepal, electronics store Biratnagar, electronics shop Kathmandu, electronic accessories Nepal, tech shop Nepal, tablet Nepal, gadgets & accessories Nepal, TV deals Nepal, gaming laptop Nepal, electronic sale Nepal, electronics offers Nepal, mobile shop near me, computer hardware Nepal, tech deals Nepal, smart home devices Nepal, earphones Nepal, power bank Nepal, smartwatch Nepal
+";
         // If you still need brand/category ids for homepage:
         $brand = Product::distinct('brand_id')->pluck('brand_id');
         $categoryIds = Product::distinct('category_id')->pluck('category_id');
@@ -113,6 +114,7 @@ class FrontendController extends Controller
             'cartCount',
             'meta_title',
             'meta_description',
+            'meta_keywords',
             'maxPrice',
             'maxFromDb',
             'hasFilters',
@@ -198,13 +200,15 @@ class FrontendController extends Controller
         // SEO
         $meta_title = $product->meta_title ?: "{$product->name} | EG Tech Solution";
         $meta_description = $product->meta_description ?: str($product->description)->limit(155);
+        $meta_keywords = $product->keywords ?: implode(',', [$product->name, $product->brand->name ?? '', $product->category->name ?? '']);
 
         return view('frontend.show', compact(
             'product',
             'related',
             'maxPerOrder',
             'meta_title',
-            'meta_description'
+            'meta_description',
+            'meta_keywords'
         ));
     }
     public function shop()

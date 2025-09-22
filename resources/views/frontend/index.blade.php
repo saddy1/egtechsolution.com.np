@@ -4,6 +4,7 @@
 @endpush
 @section('title', $meta_title)
 @section('meta_description', $meta_description)
+@section('meta_keywords', $meta_keywords)
 
 
 @section('content')
@@ -95,7 +96,7 @@
                         <div class="relative">
                             @forelse($banners as $i => $b)
                                 <div class="hidden duration-700 ease-in-out" data-carousel-item>
-                                    <img src="{{ Storage::url($b->image_path) }}" alt="{{ $b->alt_text ?? $b->name }}"
+                                    <img src="{{ asset($b->image_path) }}" alt="{{ $b->alt_text ?? $b->name }}"
                                         class="w-full h-56 sm:h-72 md:h-[60vh] lg:h-[65vh] object-cover"
                                         loading="{{ $i === 0 ? 'eager' : 'lazy' }}" />
                                     <div
@@ -175,7 +176,7 @@
                         class="group relative bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition overflow-hidden">
                         <!-- Product image -->
                         <div class="aspect-w-1 aspect-h-1 w-full overflow-hidden bg-gray-100 relative">
-                            <img src="{{ asset('storage/product/' . $product->image) }}" alt="{{ $product->image }}"
+                            <img src="{{ asset($product->image) }}" alt="{{ $product->image }}"
                                 class="h-40 sm:h-48 md:h-56 w-full object-cover transition-transform duration-300 group-hover:scale-105">
 
                             @if ($product->sale_price && $product->sale_price < $product->price)

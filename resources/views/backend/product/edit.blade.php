@@ -155,7 +155,7 @@
             <label class="mb-1 block text-sm font-medium">Product Image</label>
             <div class="flex items-start gap-4">
               @if($product->image)
-                <img src="{{ asset('storage/product/'.$product->image) }}" alt="{{ $product->image }}" class="h-20 w-20 rounded object-cover ring-1 ring-gray-200" alt="">
+                <img src="{{ asset($product->image) }}" alt="{{ $product->image }}" class="h-20 w-20 rounded object-cover ring-1 ring-gray-200" alt="">
               @endif
 
               <div class="flex-1">

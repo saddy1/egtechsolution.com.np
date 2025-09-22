@@ -17,6 +17,7 @@
     @stack('head')
     <title>@yield('title', 'Default Title')</title>
 <meta name="description" content="@yield('meta_description', 'Default description')">
+<meta name="keywords" content="@yield('meta_keywords', 'Default keywords')">
 
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])

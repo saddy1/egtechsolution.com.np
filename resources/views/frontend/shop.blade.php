@@ -67,7 +67,7 @@
                 <div class="bg-white rounded shadow overflow-hidden relative group">
                     <!-- Image + Discount Badge -->
                     <a href="{{ url('/products/' . str_replace(' ', '-', $row->name) . '/' . $row->id) }}">
-                        <img src="{{ asset('assets/product/' . $row->name . '.png') }}" alt="{{ $row->name }}" class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105">
+                        <img src="{{ asset( $row->name ) }}" alt="{{ $row->name }}" class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105">
                         <span class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
                             {{ number_format(($row->discount / $row->rate) * 100, 0) }}% Off
                         </span>

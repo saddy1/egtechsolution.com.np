@@ -212,7 +212,7 @@
                                 @foreach ($products as $product)
                                     <tr class="hover:bg-slate-50">
                                         <td class="px-6 py-4">
-                                            <img src="{{ asset('storage/product/'.$product['image_url']) }}"
+                                            <img src="{{ asset($product['image_url']) }}"
                                                 class="h-16 w-16 rounded object-cover ring-1 ring-slate-200"
                                                 alt="{{ $product['image_url'] }}">
                                         </td>

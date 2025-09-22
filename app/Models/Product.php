@@ -16,6 +16,7 @@ class Product extends Model
         'quantity','stock_status',
         'category_id','brand_id',
         'sku','barcode',
+        'keywords',
         'meta_title','meta_description',
         'image','is_active','is_featured',
     ];

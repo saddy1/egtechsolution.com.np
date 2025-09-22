@@ -2,6 +2,7 @@
 
 @section('title', $meta_title)
 @section('meta_description', $meta_description)
+@section('meta_keywords', $meta_keywords)
 
 @section('content')
     <section class="min-h-screen bg-white py-6 sm:py-8">
@@ -25,7 +26,7 @@
                 {{-- Left: Gallery --}}
                 <div class="order-2 lg:order-1">
                     <div class="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
-                        <img src="{{ asset('storage/product/' . $product->image) }}" alt="{{ $product->image }}"
+                        <img src="{{ asset($product->image) }}" alt="{{ $product->image }}"
                             class="h-auto w-full rounded-lg object-contain" style="max-height: 520px" loading="eager">
                     </div>
                     {{-- (Optional) thumbnails row could go here --}}
@@ -186,7 +187,7 @@
                         <a href="{{ url('/products/' . $rp->slug . '/' . $rp->id) }}"
                             class="group block overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-sm">
                             <div class="relative aspect-[4/3] w-full overflow-hidden bg-gray-50">
-                                <img src="{{ asset('storage/product/' . $rp->image) }}" alt="{{ $rp->image }}"
+                                <img src="{{ asset( $rp->image) }}" alt="{{ $rp->image }}"
                                     class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105">
                                 @if ($rp->sale_price && $rp->sale_price < $rp->price)
                                     <span

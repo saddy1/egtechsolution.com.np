@@ -1,3 +1,4 @@
+{{-- resources/views/backend/product/create.blade.php --}}
 @extends('backend.layout.app')
 
 @section('content')
@@ -21,6 +22,17 @@
       <div class="px-5 py-6">
         <form action="{{ route('product.store') }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 gap-6">
           @csrf
+
+          {{-- Global form errors --}}
+          @if ($errors->any())
+            <div class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <ul class="list-disc pl-5 space-y-1">
+                @foreach ($errors->all() as $error)
+                  <li>{{ $error }}</li>
+                @endforeach
+              </ul>
+            </div>
+          @endif
 
           {{-- Basic Info --}}
           <div class="grid grid-cols-1 gap-6 md:grid-cols-12">
@@ -150,6 +162,19 @@
             </div>
           </div>
 
+          {{-- Slug (optional, auto from name) --}}
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-12">
+            <div class="md:col-span-6">
+              <label for="slug" class="mb-1 block text-sm font-medium text-gray-700">Slug (URL)</label>
+              <input type="text" name="slug" id="slug" value="{{ old('slug') }}"
+                     class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500">
+              <p class="mt-1 text-xs text-gray-500">Auto-generated from product name. You can edit if needed.</p>
+              @error('slug')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+              @enderror
+            </div>
+          </div>
+
           {{-- Description --}}
           <div class="grid grid-cols-1 gap-6">
             <div>
@@ -159,6 +184,20 @@
               @error('description')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
               @enderror
+            </div>
+          </div>
+
+          {{-- Specifications --}}
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-12">
+            <div class="md:col-span-12">
+              <label for="specifications" class="mb-1 block text-sm font-medium text-gray-700">Product Specifications</label>
+              <textarea name="specifications" id="specifications" rows="6"
+                        class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
+                        placeholder="Enter specifications, one per line. Example:&#10;RAM: 8GB&#10;Storage: 256GB SSD&#10;Display: 15.6 inch">{{ old('specifications') }}</textarea>
+              @error('specifications')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+              @enderror
+              <p class="mt-1 text-xs text-gray-500">Tip: Enter one specification per line, like "RAM: 8GB"</p>
             </div>
           </div>
 
@@ -183,17 +222,20 @@
             </div>
           </div>
 
-          {{-- Specifications --}}
           <div class="grid grid-cols-1 gap-6 md:grid-cols-12">
-            <div class="md:col-span-12">
-              <label for="specifications" class="mb-1 block text-sm font-medium text-gray-700">Product Specifications</label>
-              <textarea name="specifications" id="specifications" rows="6"
-                        class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
-                        placeholder="Enter specifications, one per line. Example:&#10;RAM: 8GB&#10;Storage: 256GB SSD&#10;Display: 15.6 inch">{{ old('specifications') }}</textarea>
-              @error('specifications')
+            <div class="md:col-span-8">
+              <label for="meta_keywords" class="mb-1 block text-sm font-medium text-gray-700">Meta Keywords (comma-separated)</label>
+              <input type="text" name="meta_keywords" id="meta_keywords" value="{{ old('meta_keywords') }}"
+                     class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500">
+              @error('meta_keywords')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
               @enderror
-              <p class="mt-1 text-xs text-gray-500">Tip: Enter one specification per line, like "RAM: 8GB"</p>
+            </div>
+            <div class="md:col-span-4 flex items-end">
+              <button type="button" id="btn-generate-seo"
+                class="w-full inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700">
+                ⚡ Auto-Generate SEO
+              </button>
             </div>
           </div>
 
@@ -244,28 +286,39 @@
   </div>
 </section>
 
-{{-- Drag & Drop + Preview JS --}}
+{{-- Page Scripts --}}
 <script>
   document.addEventListener("DOMContentLoaded", () => {
+    // CSRF (ensure your layout has meta tag)
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+    // Elements
     const area = document.getElementById("drag-drop-area");
     const input = document.getElementById("image");
     const fileName = document.getElementById("file-name");
     const preview = document.getElementById("preview");
 
-    // Auto-generate slug from name
     const nameInput = document.getElementById("name");
-    nameInput.addEventListener("input", () => {
-      // Auto-generate SKU if empty
-      const skuInput = document.getElementById("sku");
-      if (!skuInput.value) {
-        const sku = nameInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8) + Math.floor(Math.random() * 1000);
-        skuInput.value = sku;
-      }
-    });
+    const skuInput = document.getElementById("sku");
+    const slugInput = document.getElementById("slug");
+    const btnSeo = document.getElementById("btn-generate-seo");
+
+    const metaTitle = document.getElementById('meta_title');
+    const metaDesc  = document.getElementById('meta_description');
+    const metaKeys  = document.getElementById('meta_keywords');
+
+    // Helpers
+    const slugify = (s) =>
+      s.toString().toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
 
     function showFile(f) {
       fileName.textContent = f ? f.name : "";
-      if (f && f.type.startsWith("image/")) {
+      if (f && f.type && f.type.startsWith("image/")) {
         const reader = new FileReader();
         reader.onload = (e) => {
           preview.src = e.target.result;
@@ -278,17 +331,15 @@
       }
     }
 
+    // Drag & Drop
     area.addEventListener("click", () => input.click());
-
     area.addEventListener("dragover", (e) => {
       e.preventDefault();
       area.classList.add("border-indigo-500", "bg-indigo-50");
     });
-
     area.addEventListener("dragleave", () => {
       area.classList.remove("border-indigo-500", "bg-indigo-50");
     });
-
     area.addEventListener("drop", (e) => {
       e.preventDefault();
       area.classList.remove("border-indigo-500", "bg-indigo-50");
@@ -298,11 +349,76 @@
         showFile(files[0]);
       }
     });
-
     input.addEventListener("change", () => {
       const f = input.files?.[0];
       showFile(f);
     });
+
+    // Auto-generate SKU and Slug from Name
+    nameInput.addEventListener("input", () => {
+      const val = nameInput.value || '';
+      if (slugInput && !slugInput.dataset.touched) {
+        slugInput.value = slugify(val);
+      }
+      if (skuInput && !skuInput.value) {
+        const base = val.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8);
+        const rand = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        skuInput.value = base ? (base + rand) : '';
+      }
+    });
+
+    // If user edits slug manually, stop auto updates
+    if (slugInput) {
+      slugInput.addEventListener('input', () => {
+        slugInput.dataset.touched = '1';
+      });
+    }
+
+    // One-click SEO using your backend endpoint
+    if (btnSeo) {
+      btnSeo.addEventListener('click', async () => {
+        const name = nameInput?.value?.trim();
+        if (!name) {
+          alert('Please enter the Product Name first.');
+          return;
+        }
+        const catSel = document.getElementById('category_id');
+        const category = catSel && catSel.options[catSel.selectedIndex]?.text?.trim() || 'General';
+        const description = document.getElementById('description')?.value?.trim() || '';
+        const specifications = document.getElementById('specifications')?.value?.trim() || '';
+        const features = [description, specifications].filter(Boolean).join("\n");
+
+        btnSeo.disabled = true;
+        btnSeo.textContent = 'Generating…';
+
+        try {
+          const res = await fetch(`{{ route('product.generateSeo') }}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': csrf,
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({ name, category, features })
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data?.message || 'Failed to generate');
+
+          if (metaTitle && data.meta_title) metaTitle.value = data.meta_title;
+          if (metaDesc  && data.meta_description) metaDesc.value = data.meta_description;
+          if (metaKeys  && data.meta_keywords) metaKeys.value = data.meta_keywords;
+          if (slugInput && data.slug && !slugInput.dataset.touched) slugInput.value = data.slug;
+
+        } catch (e) {
+          console.error(e);
+          alert('Could not generate SEO. Please try again.');
+        } finally {
+          btnSeo.disabled = false;
+          btnSeo.textContent = '⚡ Auto-Generate SEO';
+        }
+      });
+    }
   });
 </script>
 @endsection

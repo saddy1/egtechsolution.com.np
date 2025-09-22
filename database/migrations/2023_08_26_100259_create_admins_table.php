@@ -32,7 +32,7 @@ return new class extends Migration
             'contact' => '9843521965',
             'email' => 'sadanand@ioepc.edu.np',
             'email_verified_at' => now(),
-            'password' => Hash::make('saddy'),
+            'password' => Hash::make('S@ddy9843521965'),
             'remember_token' => Str::random(10),
             'created_at' => now(),
             'updated_at' => now(),

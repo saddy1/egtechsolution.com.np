@@ -8,7 +8,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\BrandController;
-use App\Http\Controllers\BannerController;  
+use App\Http\Controllers\BannerController;
 use App\Http\Controllers\ProductsController;
 
 use App\Http\Controllers\UserController;
@@ -36,7 +36,7 @@ Route::post('customer', [GoogleAuthController::class, 'store'])->name('customer.
 Route::get("/admin/orderlist", [AdminController::class, 'orderlist']);
 Route::get("/products/{name}/{id}", [FrontendController::class, 'show']);
 Route::get("show/products", [FrontendController::class, 'index'])->name('products.index');
-Route::get("/", [FrontendController::class, 'index'])->name('home') ;
+Route::get("/", [FrontendController::class, 'index'])->name('home');
 
 Route::get("/shopping", [FrontendController::class, 'shop'])->name('shop');
 
@@ -61,13 +61,30 @@ Route::get("/admin", [AdminController::class, 'index']);
 Route::post("/admin", [AdminController::class, 'login'])->name('admin');
 Route::middleware(['admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-    Route::delete('/admin/product/{id}', [AdminController::class, 'destroy'])->name('product.destroy');
     Route::resource('brands', BrandController::class);
-    Route::resource('product', ProductsController::class);
-    Route::resource('banner', BannerController::class);
+    Route::get('/admin/products', [ProductsController::class, 'index'])->name('product.index');
+    Route::get('/admin/products/create', [ProductsController::class, 'create'])->name('product.create');
+    Route::post('/admin/products', [ProductsController::class, 'store'])->name('product.store');
+    Route::get('/admin/products/{product}/edit', [ProductsController::class, 'edit'])->name('product.edit');
+    Route::put('/admin/products/update/{product}', [ProductsController::class, 'update'])->name('product.update');
+    Route::delete('/admin/products/{id}', [ProductsController::class, 'destroy'])->name('product.destroy');
+
+
+    Route::get('/admin/banners', [BannerController::class, 'index'])->name('banner.index');
+    Route::get('/admin/banners/create', [BannerController::class, 'create'])->name('banner.create');
+    Route::post('/admin/banners', [BannerController::class, 'store'])->name('banner.store');
+    Route::delete('/admin/banners/{banner}', [BannerController::class, 'destroy'])->name('banner.destroy');
+
     Route::resource('brand', BrandController::class);
     Route::resource('categories', CategoryController::class);
     Route::post("/admin/logout", [AdminController::class, 'logout'])->name('admin.logout');
+
+
+
+
+    Route::post('/generate-seo', [AdminController::class, 'generateSeo'])
+        ->name('product.generateSeo');
+
 
 
     Route::get('/orders', [OrderController::class, 'index'])->name('admin.orders');

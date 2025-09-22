@@ -66,6 +66,7 @@ class ProductsController extends Controller
             'specifications'   => ['nullable', 'string'],
             'meta_title'       => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string'],
+            'meta_keywords'         => ['nullable', 'string'],
             'barcode'          => ['nullable', 'string', 'max:255'],
             'image'            => ['required', 'image', 'mimes:jpeg,jpg,png,webp,gif', 'max:5120'],
             'is_active'        => ['nullable', 'boolean'],
@@ -81,12 +82,14 @@ class ProductsController extends Controller
         if ($request->hasFile('image')) {
             $ext = $request->file('image')->getClientOriginalExtension();
             $imageName = $request->sku . '.' . $ext;
+            $dir = public_path(path: "product/");
 
             // Delete old file if exists (prevent duplicates)
-            Storage::disk('public')->delete('product/' . $imageName);
 
             // Store new file
-            $request->file('image')->storeAs('product', $imageName, 'public');
+            $request->file('image')->move($dir, $imageName);
+            $image = 'product/' . $imageName;
+
         }
 
         $product = Product::create([
@@ -101,9 +104,10 @@ class ProductsController extends Controller
             'brand_id'         => $data['brand_id'],
             'sku'              => $data['sku'],
             'barcode'          => $data['barcode'] ?? null,
+            'keywords'         => $data['meta_keywords'] ?? null,
             'meta_title'       => $data['meta_title'] ?? null,
             'meta_description' => $data['meta_description'] ?? null,
-            'image'            => $imageName, // just filename, as you had
+            'image'            => $image, // just filename, as you had
             'is_active'        => $request->boolean('is_active', true),
             'is_featured'      => $request->boolean('is_featured', false),
         ]);
@@ -179,18 +183,19 @@ class ProductsController extends Controller
             $data['slug'] = $product->slug ?? (Str::slug($data['name']) . '-' . Str::random(6));
         }
 
+
         // handle image replacement
         if ($request->hasFile('image')) {
+
             $ext = $request->file('image')->getClientOriginalExtension();
             $imageName = $request->sku . '.' . $ext;
+            $dir = public_path(path: "product/");
 
-            // Delete old image if exists
-            if ($product->image) {
-                Storage::disk('public')->delete('product/' . $product->image);
-            }
+
+         
 
             // Save new image
-            $request->file('image')->storeAs('product', $imageName, 'public');
+            $request->file('image')->move($dir, $imageName);
             $product->image = 'product/' . $imageName;
         }
 
@@ -239,8 +244,8 @@ class ProductsController extends Controller
         $product->specifications()->delete();
 
         // Delete image file if exists
-        if ($product->image && Storage::disk('public')->exists($product->image)) {
-            Storage::disk('public')->delete($product->image);
+     if( $product->image && file_exists(public_path($product->image)) ) {
+            unlink(public_path($product->image));
         }
 
         // Delete the product
