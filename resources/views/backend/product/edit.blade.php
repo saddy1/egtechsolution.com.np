@@ -175,29 +175,71 @@
             </div>
           </div>
 
+          {{-- Variants: the same model in other RAM / storage sizes, each with its own price and stock --}}
+          @php
+            $siblings = $product->variant_group_id
+                ? \App\Models\Product::where('variant_group_id', $product->variant_group_id)->where('id', '!=', $product->id)->orderBy('id')->get()
+                : collect();
+          @endphp
           <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-            <h2 class="text-sm font-semibold text-gray-800">Variants (same model, different RAM / storage / colour)</h2>
-            <p class="mt-1 text-xs text-gray-500">Each variant is its own product with its own price, stock and SKU. Products sharing a group name are shown as option buttons on each other's page. Leave both fields empty for a product with no variants.</p>
-            <div class="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div>
-                <label class="mb-1 block text-sm font-medium">Variant group name</label>
-                <input type="text" name="variant_group" list="variant-groups" value="{{ old('variant_group', $product->variantGroup?->name) }}"
-                       placeholder="e.g. Dell Inspiron 14 7440"
-                       class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500">
-                <datalist id="variant-groups">
-                  @foreach(\App\Models\VariantGroup::orderBy('name')->pluck('name') as $groupName)
-                  <option value="{{ $groupName }}"></option>
+            <h2 class="text-sm font-semibold text-gray-800">Variants (RAM / Storage)</h2>
+            <p class="mt-1 text-xs text-gray-500">Customers see one product and switch RAM / storage on its page; each choice has its own price and stock. Leave everything here empty for a product without variants.</p>
+            @if($errors->has('variants.*') || $errors->has('new_variants.*') || $errors->has('variant_link_sku'))
+              <p class="mt-2 text-sm text-red-600">{{ collect($errors->get('variants.*'))->flatten()->merge(collect($errors->get('new_variants.*'))->flatten())->merge($errors->get('variant_link_sku'))->first() }}</p>
+            @endif
+
+            <div class="mt-3 overflow-x-auto">
+              <table class="w-full min-w-[860px] text-left text-sm">
+                <thead class="text-xs uppercase text-gray-500">
+                  <tr>
+                    <th class="py-2 pr-2 w-[26%]">Name</th><th class="py-2 pr-2">RAM</th><th class="py-2 pr-2">Storage</th>
+                    <th class="py-2 pr-2">Price</th><th class="py-2 pr-2">Sale price</th><th class="py-2 pr-2">Cost price</th>
+                    <th class="py-2 pr-2 w-20">Stock</th><th class="py-2 pr-2">Show</th><th class="py-2">Unlink</th>
+                  </tr>
+                </thead>
+                <tbody class="align-top">
+                  {{-- This product --}}
+                  <tr>
+                    <td class="py-1.5 pr-2 text-gray-700"><span class="font-semibold">This product</span><div class="text-xs text-gray-500">{{ $product->sku }}</div></td>
+                    <td class="py-1.5 pr-2"><input type="text" name="variant_self[ram]" value="{{ old('variant_self.ram', $product->variant_options['RAM'] ?? '') }}" placeholder="16GB" class="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></td>
+                    <td class="py-1.5 pr-2"><input type="text" name="variant_self[storage]" value="{{ old('variant_self.storage', $product->variant_options['Storage'] ?? '') }}" placeholder="512GB SSD" class="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></td>
+                    <td class="py-1.5 pr-2 text-xs text-gray-500" colspan="6">Price and stock of this one are the fields above.</td>
+                  </tr>
+                  {{-- Its other variants --}}
+                  @foreach($siblings as $v)
+                  <tr>
+                    <td class="py-1.5 pr-2"><input type="text" name="variants[{{ $v->id }}][name]" value="{{ old("variants.$v->id.name", $v->name) }}" class="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"><a href="{{ route('product.edit', $v) }}" class="text-xs text-indigo-600 hover:underline">{{ $v->sku }} · photos &amp; details →</a></td>
+                    <td class="py-1.5 pr-2"><input type="text" name="variants[{{ $v->id }}][ram]" value="{{ old("variants.$v->id.ram", $v->variant_options['RAM'] ?? '') }}" class="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></td>
+                    <td class="py-1.5 pr-2"><input type="text" name="variants[{{ $v->id }}][storage]" value="{{ old("variants.$v->id.storage", $v->variant_options['Storage'] ?? '') }}" class="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></td>
+                    <td class="py-1.5 pr-2"><input type="number" step="0.01" min="0" name="variants[{{ $v->id }}][price]" value="{{ old("variants.$v->id.price", $v->price) }}" class="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></td>
+                    <td class="py-1.5 pr-2"><input type="number" step="0.01" min="0" name="variants[{{ $v->id }}][sale_price]" value="{{ old("variants.$v->id.sale_price", $v->sale_price) }}" class="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></td>
+                    <td class="py-1.5 pr-2"><input type="number" step="0.01" min="0" name="variants[{{ $v->id }}][cost_price]" value="{{ old("variants.$v->id.cost_price", $v->cost_price) }}" class="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></td>
+                    <td class="py-1.5 pr-2"><input type="number" min="0" name="variants[{{ $v->id }}][quantity]" value="{{ old("variants.$v->id.quantity", $v->quantity) }}" class="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></td>
+                    <td class="py-1.5 pr-2 pt-3"><input type="checkbox" name="variants[{{ $v->id }}][is_active]" value="1" @checked(old("variants.$v->id.is_active", $v->is_active))></td>
+                    <td class="py-1.5 pt-3"><input type="checkbox" name="variants[{{ $v->id }}][unlink]" value="1" title="Make this a separate product again"></td>
+                  </tr>
                   @endforeach
-                </datalist>
-                @error('variant_group') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-              </div>
-              <div>
-                <label class="mb-1 block text-sm font-medium">This product's options (one per line)</label>
-                <textarea name="variant_options" rows="3" placeholder="RAM: 12GB&#10;Storage: 512GB SSD&#10;Colour: Silver"
-                          class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-mono focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500">{{ old('variant_options', collect($product->variant_options ?? [])->map(fn ($v, $k) => "$k: $v")->implode("\n")) }}</textarea>
-                <p class="mt-1 text-xs text-gray-500">Use the same option names on every variant in the group.</p>
-                @error('variant_options') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-              </div>
+                  {{-- New variants --}}
+                  @foreach([0, 1] as $n)
+                  <tr>
+                    <td class="py-1.5 pr-2"><input type="text" name="new_variants[{{ $n }}][name]" value="{{ old("new_variants.$n.name") }}" placeholder="+ New variant (name optional)" class="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></td>
+                    <td class="py-1.5 pr-2"><input type="text" name="new_variants[{{ $n }}][ram]" value="{{ old("new_variants.$n.ram") }}" placeholder="16GB" class="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></td>
+                    <td class="py-1.5 pr-2"><input type="text" name="new_variants[{{ $n }}][storage]" value="{{ old("new_variants.$n.storage") }}" placeholder="1TB SSD" class="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></td>
+                    <td class="py-1.5 pr-2"><input type="number" step="0.01" min="0" name="new_variants[{{ $n }}][price]" value="{{ old("new_variants.$n.price") }}" class="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></td>
+                    <td class="py-1.5 pr-2"><input type="number" step="0.01" min="0" name="new_variants[{{ $n }}][sale_price]" value="{{ old("new_variants.$n.sale_price") }}" class="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></td>
+                    <td class="py-1.5 pr-2"><input type="number" step="0.01" min="0" name="new_variants[{{ $n }}][cost_price]" value="{{ old("new_variants.$n.cost_price") }}" class="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></td>
+                    <td class="py-1.5 pr-2"><input type="number" min="0" name="new_variants[{{ $n }}][quantity]" value="{{ old("new_variants.$n.quantity") }}" class="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></td>
+                    <td colspan="2"></td>
+                  </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+            <p class="mt-2 text-xs text-gray-500">To add a variant, fill a "New variant" row (RAM or storage, and price) and save; it copies this product's description, specifications and main photo. Need more rows? Save and two new empty rows appear.</p>
+
+            <div class="mt-4 max-w-md">
+              <label class="mb-1 block text-xs font-medium text-gray-700">Already added it as a separate product? Enter its SKU to join it to this one</label>
+              <input type="text" name="variant_link_sku" value="{{ old('variant_link_sku') }}" placeholder="SKU of the other product" class="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
             </div>
           </div>
 
@@ -218,45 +260,6 @@
             </button>
           </div>
         </form>
-
-        <div class="mt-8 border-t border-gray-200 pt-6">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <h2 class="text-sm font-semibold text-gray-800">Variants of this product</h2>
-            <form action="{{ route('product.variant.create', $product) }}" method="POST"
-                  onsubmit="return confirm('Create a new variant copied from this product? Save any unsaved changes above first.')">
-              @csrf
-              <button type="submit" class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">+ Add a variant (copy this product)</button>
-            </form>
-          </div>
-          @php $siblings = $product->variant_group_id ? \App\Models\Product::where('variant_group_id', $product->variant_group_id)->orderBy('id')->get() : collect(); @endphp
-          @if($siblings->count() > 1)
-          <div class="mt-3 overflow-x-auto">
-            <table class="w-full text-left text-sm">
-              <thead class="text-xs uppercase text-gray-500"><tr><th class="py-2 pr-4">Product</th><th class="py-2 pr-4">Options</th><th class="py-2 pr-4">Price</th><th class="py-2 pr-4">Stock</th><th class="py-2">Status</th></tr></thead>
-              <tbody class="divide-y divide-gray-100">
-                @foreach($siblings as $sibling)
-                <tr>
-                  <td class="py-2 pr-4">
-                    @if($sibling->id === $product->id)
-                      <span class="font-semibold text-gray-900">{{ $sibling->name }}</span> <span class="text-xs text-gray-500">(this one)</span>
-                    @else
-                      <a href="{{ route('product.edit', $sibling) }}" class="font-medium text-indigo-600 hover:underline">{{ $sibling->name }}</a>
-                    @endif
-                    <div class="text-xs text-gray-500">{{ $sibling->sku }}</div>
-                  </td>
-                  <td class="py-2 pr-4 text-gray-700">{{ collect($sibling->variant_options ?? [])->map(fn ($v, $k) => "$k: $v")->implode(' · ') ?: '— not set —' }}</td>
-                  <td class="py-2 pr-4">Rs. {{ number_format($sibling->final_price, 0) }}</td>
-                  <td class="py-2 pr-4">{{ $sibling->quantity }}</td>
-                  <td class="py-2">{{ $sibling->is_active ? 'Active' : 'Hidden' }}</td>
-                </tr>
-                @endforeach
-              </tbody>
-            </table>
-          </div>
-          @else
-          <p class="mt-2 text-xs text-gray-500">No other variants yet.</p>
-          @endif
-        </div>
 
         @if($product->images->count())
         <div class="mt-8 border-t border-gray-200 pt-6">

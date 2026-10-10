@@ -57,7 +57,7 @@
                 </td>
                 <td class="px-4 py-3">
                   <div class="font-semibold text-gray-900">{{ $p->name }}</div>
-                  <div class="text-xs text-gray-500">SKU: {{ $p->sku }}</div>
+                  <div class="text-xs text-gray-500">SKU: {{ $p->sku }}@if($p->variant_group_id) · <span class="font-semibold text-indigo-600">Variant{{ $p->variant_options ? ': '.implode(' / ', $p->variant_options) : '' }}</span>@endif</div>
                 </td>
                 <td class="px-4 py-3">{{ $p->brand?->name ?? '—' }}</td>
                 <td class="px-4 py-3">{{ $p->category?->name ?? '—' }}</td>

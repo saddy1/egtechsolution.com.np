@@ -74,6 +74,14 @@ class FrontendController extends Controller
                 ->paginate(50)
                 ->withQueryString();
 
+            // One card per model: of the variants that matched, keep the cheapest.
+            $products->setCollection(
+                $products->getCollection()
+                    ->sortBy(fn ($p) => (float) $p->final_price)
+                    ->unique(fn ($p) => $p->variant_group_id ?: 'p'.$p->id)
+                    ->sortByDesc('created_at')->values()
+            );
+
             // Render the SEARCH page (sidebar + results)
             return view('frontend.search', [
                 'products'            => $products,
@@ -92,7 +100,11 @@ class FrontendController extends Controller
         // ----- No filters -> render homepage/index as usual -----
         $products = Product::with(['brand:id,name', 'category:id,name'])->listed()->latest()->get();
         $Randproducts = Product::listed()->inRandomOrder()->limit(16)->get();
-        $featuredProducts = Product::listed()->where('is_featured', true)->where('is_active', true)->latest()->take(8)->get();
+        // One card per model, even when several of its variants are featured (cheapest wins).
+        $featuredProducts = Product::where('is_featured', true)->where('is_active', true)->latest()->take(40)->get()
+            ->sortBy(fn ($p) => (float) $p->final_price)
+            ->unique(fn ($p) => $p->variant_group_id ?: 'p'.$p->id)
+            ->sortByDesc('created_at')->take(8)->values();
 
         // SEO
         $meta_title = "Buy Electronics, Gadgets, and More | EG Tech Solution | Best Prices in Nepal | Best Deals | Best Offers | Best Computer Shop | Best Electronics Store | Budget Friendly";

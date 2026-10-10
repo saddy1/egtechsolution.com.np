@@ -185,8 +185,27 @@ class ProductsController extends Controller
             'meta_description' => ['nullable', 'string'],
             'barcode'          => ['nullable', 'string', 'max:255'],
             'image'            => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp,gif', 'max:5120'],
-            'variant_group'    => ['nullable', 'string', 'max:255'],
-            'variant_options'  => ['nullable', 'string', 'max:1000'],
+            'variant_self.ram'            => ['nullable', 'string', 'max:50'],
+            'variant_self.storage'        => ['nullable', 'string', 'max:50'],
+            'variants'                    => ['nullable', 'array'],
+            'variants.*.name'             => ['required', 'string', 'max:255'],
+            'variants.*.ram'              => ['nullable', 'string', 'max:50'],
+            'variants.*.storage'          => ['nullable', 'string', 'max:50'],
+            'variants.*.price'            => ['required', 'numeric', 'min:0'],
+            'variants.*.sale_price'       => ['nullable', 'numeric', 'min:0'],
+            'variants.*.cost_price'       => ['nullable', 'numeric', 'min:0'],
+            'variants.*.quantity'         => ['required', 'integer', 'min:0'],
+            'variants.*.is_active'        => ['nullable', 'boolean'],
+            'variants.*.unlink'           => ['nullable', 'boolean'],
+            'new_variants'                => ['nullable', 'array'],
+            'new_variants.*.name'         => ['nullable', 'string', 'max:255'],
+            'new_variants.*.ram'          => ['nullable', 'string', 'max:50'],
+            'new_variants.*.storage'      => ['nullable', 'string', 'max:50'],
+            'new_variants.*.price'        => ['nullable', 'numeric', 'min:0'],
+            'new_variants.*.sale_price'   => ['nullable', 'numeric', 'min:0'],
+            'new_variants.*.cost_price'   => ['nullable', 'numeric', 'min:0'],
+            'new_variants.*.quantity'     => ['nullable', 'integer', 'min:0'],
+            'variant_link_sku'            => ['nullable', 'string', 'exists:products,sku'],
             'is_active'        => ['nullable', 'boolean'],
             'is_featured'      => ['nullable', 'boolean'],
             'gallery'          => ['nullable', 'array', 'max:10'],
@@ -243,7 +262,7 @@ class ProductsController extends Controller
         }
 
         $this->storeGallery($request, $product);
-        $this->saveVariantInfo($product, $data['variant_group'] ?? null, $data['variant_options'] ?? null);
+        $this->saveVariants($product, $data);
 
         return redirect()
             ->route('product.index')
@@ -335,62 +354,112 @@ class ProductsController extends Controller
     }
 
     /**
-     * Copy a product into a new hidden draft in the same variant group, ready
-     * to be given its own options, price and stock.
+     * Save the "Variants (RAM / Storage)" table of the edit page.
+     *
+     * Every variant is a full product of its own (so orders, billing and stock
+     * treat it like any other); a shared variant group makes the shop show them
+     * as one product with RAM / storage buttons.
      */
-    public function createVariant(Product $product)
+    private function saveVariants(Product $product, array $data): void
     {
-        if (! $product->variant_group_id) {
-            $product->update(['variant_group_id' => VariantGroup::create(['name' => $product->name])->id]);
+        $options = fn (array $row) => array_filter([
+            'RAM'     => trim((string) ($row['ram'] ?? '')),
+            'Storage' => trim((string) ($row['storage'] ?? '')),
+        ]);
+
+        $new = collect($data['new_variants'] ?? [])
+            ->filter(fn ($row) => $options($row) && ($row['price'] ?? null) !== null);
+
+        $linked = ! empty($data['variant_link_sku'])
+            ? Product::where('sku', $data['variant_link_sku'])->where('id', '!=', $product->id)->first()
+            : null;
+
+        // Become a group the first time a variant is added or linked.
+        if (! $product->variant_group_id && ($new->isNotEmpty() || $linked)) {
+            $product->variant_group_id = ($linked?->variant_group_id) ?: VariantGroup::create(['name' => $product->name])->id;
         }
 
-        $sku = $product->sku.'-'.Str::upper(Str::random(4));
+        $product->variant_options = $options($data['variant_self'] ?? []) ?: null;
+        $product->save();
 
-        $copy = $product->replicate(['slug', 'barcode', 'is_featured']);
-        $copy->fill([
-            'name'         => $product->name.' (new variant '.Str::upper(Str::random(3)).')',
-            'slug'         => Str::slug($product->name).'-'.Str::random(6),
-            'sku'          => $sku,
-            'quantity'     => 0,
-            'stock_status' => 'out_of_stock',
-            'is_active'    => false,
-            'is_featured'  => false,
+        if (! $product->variant_group_id) {
+            return;
+        }
+
+        if ($linked) {
+            $linked->update(['variant_group_id' => $product->variant_group_id]);
+        }
+
+        foreach ($data['variants'] ?? [] as $id => $row) {
+            $variant = Product::where('variant_group_id', $product->variant_group_id)->find($id);
+
+            if (! $variant) {
+                continue;
+            }
+
+            if (! empty($row['unlink'])) {
+                $variant->update(['variant_group_id' => null, 'variant_options' => null]);
+                continue;
+            }
+
+            $variant->update([
+                'name'            => $row['name'],
+                'variant_options' => $options($row) ?: null,
+                'price'           => $row['price'],
+                'sale_price'      => $row['sale_price'] ?? null,
+                'cost_price'      => $row['cost_price'] ?? $variant->cost_price,
+                'quantity'        => $row['quantity'],
+                'stock_status'    => $row['quantity'] > 0 ? 'in_stock' : 'out_of_stock',
+                'is_active'       => ! empty($row['is_active']),
+            ]);
+        }
+
+        foreach ($new as $row) {
+            $this->createVariant($product, $row, $options($row));
+        }
+
+        // A group of one is just a normal product.
+        if (Product::where('variant_group_id', $product->variant_group_id)->count() < 2) {
+            $groupId = $product->variant_group_id;
+            $product->update(['variant_group_id' => null]);
+            VariantGroup::whereKey($groupId)->delete();
+        }
+    }
+
+    /** Create one variant as a copy of $product with its own options, price and stock. */
+    private function createVariant(Product $product, array $row, array $options): void
+    {
+        $label = implode(' / ', $options);
+        $name  = trim((string) ($row['name'] ?? ''));
+        $sku   = $product->sku.'-'.Str::upper(Str::slug($label, ''));
+
+        while (Product::where('sku', $sku)->exists()) {
+            $sku = $product->sku.'-'.Str::upper(Str::random(4));
+        }
+
+        $variant = $product->replicate(['slug', 'barcode', 'is_featured']);
+        $variant->fill([
+            // Orders and bills print the name, so it must tell the variants apart.
+            'name'            => $name !== '' && $name !== $product->name ? $name : $product->name.' ('.$label.')',
+            'slug'            => Str::slug($product->name.' '.$label).'-'.Str::random(6),
+            'sku'             => $sku,
+            'variant_options' => $options,
+            'price'           => $row['price'],
+            'sale_price'      => $row['sale_price'] ?? null,
+            'cost_price'      => $row['cost_price'] ?? $product->cost_price,
+            'quantity'        => $row['quantity'] ?? 0,
+            'stock_status'    => ($row['quantity'] ?? 0) > 0 ? 'in_stock' : 'out_of_stock',
+            'is_active'       => true,
+            'is_featured'     => false,
         ]);
 
         // Each product owns its main photo file (it is named after the SKU), so the copy gets its own.
         if ($product->image && file_exists(public_path($product->image))) {
-            $copy->image = 'product/'.$sku.'.'.pathinfo($product->image, PATHINFO_EXTENSION);
-            copy(public_path($product->image), public_path($copy->image));
+            $variant->image = 'product/'.$sku.'.'.pathinfo($product->image, PATHINFO_EXTENSION);
+            copy(public_path($product->image), public_path($variant->image));
         }
 
-        $copy->save();
-        $copy->specifications()->createMany($product->specifications->map->only(['name', 'value'])->all());
-
-        return redirect()
-            ->route('product.edit', $copy)
-            ->with('success', 'New variant created as a hidden draft. Change its name, options, price and stock, tick Active, then save.');
-    }
-
-    /** Store which variant group the product belongs to and its own option values. */
-    private function saveVariantInfo(Product $product, ?string $groupName, ?string $optionsText): void
-    {
-        $previous  = $product->variant_group_id;
-        $groupName = trim((string) $groupName);
-
-        if ($groupName === '') {
-            $product->update(['variant_group_id' => null, 'variant_options' => null]);
-        } else {
-            $options = collect($this->parseSpecifications((string) $optionsText))->pluck('value', 'name')->all();
-
-            $product->update([
-                'variant_group_id' => VariantGroup::firstOrCreate(['name' => $groupName])->id,
-                'variant_options'  => $options ?: null,
-            ]);
-        }
-
-        // Do not leave an empty group behind.
-        if ($previous && $previous !== $product->variant_group_id) {
-            VariantGroup::whereKey($previous)->doesntHave('products')->delete();
-        }
+        $variant->save();
+        $variant->specifications()->createMany($product->specifications->map->only(['name', 'value'])->all());
     }
 }

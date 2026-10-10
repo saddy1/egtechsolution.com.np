@@ -144,7 +144,15 @@ class Product extends Model
     /** Every photo of the product, main one first, as paths under public/. */
     public function gallery(): array
     {
-        return array_values(array_filter([$this->image, ...$this->images->pluck('path')]));
+        $extra = $this->images->pluck('path');
+
+        // A variant without extra photos of its own borrows them from the others of its model.
+        if ($extra->isEmpty() && $this->variant_group_id) {
+            $extra = ProductImage::whereIn('product_id', static::where('variant_group_id', $this->variant_group_id)->select('id'))
+                ->orderBy('product_id')->orderBy('sort_order')->pluck('path');
+        }
+
+        return array_values(array_unique(array_filter([$this->image, ...$extra])));
     }
 
     // Optional: final price accessor
