@@ -48,7 +48,7 @@
                 <div class="text-center space-y-3 sm:space-y-4">
                     <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Your cart is empty</h2>
                     <p class="text-sm sm:text-base text-slate-600">Looks like you haven’t added anything yet.</p>
-                    <a href="{{ route('shop') }}"
+                    <a href="{{ route('home') }}"
                         class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-blue-700">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none">
                             <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -58,52 +58,88 @@
                     </a>
                 </div>
 
-                {{-- Past Orders --}}
-                <div class="mt-8 overflow-x-auto">
-                    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
-                        <div class="border-b bg-slate-50 p-3 sm:p-4">
-                            <h3 class="text-sm sm:text-base font-semibold text-slate-800">Your past orders</h3>
-                        </div>
-                        <table class="min-w-full text-xs sm:text-sm">
-                            <thead class="bg-slate-100 text-slate-600">
-                                <tr>
-                                    <th class="px-3 sm:px-6 py-2 text-left font-medium">Order ID</th>
-                                    <th class="px-3 sm:px-6 py-2 text-left font-medium">Date</th>
-                                    <th class="px-3 sm:px-6 py-2 text-left font-medium">Name</th>
-                                    <th class="px-3 sm:px-6 py-2 text-left font-medium">Qty</th>
-                                    <th class="px-3 sm:px-6 py-2 text-left font-medium">Rate</th>
-                                    <th class="px-3 sm:px-6 py-2 text-left font-medium">Total</th>
-                                    <th class="px-3 sm:px-6 py-2 text-left font-medium">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                @forelse ($orders as $order)
-                                    @foreach ($order->items as $item)
-                                        <tr class="hover:bg-slate-50">
-                                            <td class="px-3 sm:px-6 py-2">{{ $order->id }}</td>
-                                            <td class="px-3 sm:px-6 py-2">{{ $order->created_at->format('d M Y') }}</td>
-                                            <td class="px-3 sm:px-6 py-2 truncate">{{ $item->product_name }}</td>
-                                            <td class="px-3 sm:px-6 py-2">{{ $item->quantity }}</td>
-                                            <td class="px-3 sm:px-6 py-2">Rs.{{ number_format($item->price, 2) }}</td>
-                                            <td class="px-3 sm:px-6 py-2">Rs.{{ number_format($item->total, 2) }}</td>
-                                            <td class="px-3 sm:px-6 py-2">
-                                                <span
-                                                    class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] sm:text-xs font-semibold text-slate-700">
-                                                    {{ $item->status ?? '—' }}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                @empty
-                                    <tr>
-                                        <td colspan="7" class="px-3 sm:px-6 py-6 text-center text-slate-500">No past
-                                            orders found.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+           {{-- Past Orders --}}
+<div class="mt-6 overflow-x-auto">
+    <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b bg-slate-50 px-4 py-2">
+            <h3 class="text-sm sm:text-base font-semibold text-slate-800">Your Past Orders</h3>
+        </div>
+
+        <table class="min-w-full text-xs sm:text-sm">
+            <thead class="bg-slate-100 text-slate-600">
+                <tr>
+                    <th class="px-3 py-2 text-left font-medium">Order ID</th>
+                    <th class="px-3 py-2 text-left font-medium">Date</th>
+                    <th class="px-3 py-2 text-left font-medium">Name</th>
+                    <th class="px-3 py-2 text-left font-medium">Qty</th>
+                    <th class="px-3 py-2 text-left font-medium">Rate</th>
+                    <th class="px-3 py-2 text-left font-medium">Total</th>
+                    <th class="px-3 py-2 text-left font-medium">Status</th>
+                </tr>
+            </thead>
+
+            <tbody class="divide-y divide-slate-100">
+                @forelse ($orders as $order)
+                    @foreach ($order->items as $item)
+                        @php
+                            $status = strtolower($item->status ?? '—');
+                            $statusColor = match ($status) {
+                                'pending' => 'bg-yellow-100 text-yellow-700',
+                                'approved' => 'bg-blue-100 text-blue-700',
+                                'shipped' => 'bg-indigo-100 text-indigo-700',
+                                'delivered' => 'bg-green-100 text-green-700',
+                                default => 'bg-slate-100 text-slate-700',
+                            };
+                        @endphp
+
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-3 py-2 font-medium text-slate-700">{{ $order->id }}</td>
+                            <td class="px-3 py-2 text-slate-600">{{ $order->created_at->format('d M Y') }}</td>
+
+                            {{-- Scrollable product name --}}
+                            <td class="px-3 py-2">
+                                <div class="max-w-[100px] sm:max-w-[160px] overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
+                                    {{ $item->product_name }}
+                                </div>
+                            </td>
+
+                            <td class="px-3 py-2 text-slate-600">{{ $item->quantity }}</td>
+                            <td class="px-3 py-2 text-slate-600">Rs.{{ number_format($item->price, 2) }}</td>
+                            <td class="px-3 py-2 font-semibold text-slate-700">
+                                Rs.{{ number_format($item->total, 2) }}
+                            </td>
+
+                            <td class="px-3 py-2">
+                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-semibold {{ $statusColor }}">
+                                    {{ ucfirst($item->status ?? '—') }}
+                                </span>
+                            </td>
+                        </tr>
+                    @endforeach
+                @empty
+                    <tr>
+                        <td colspan="7" class="px-3 py-4 text-center text-slate-500">
+                            No past orders found.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{{-- Optional scrollbar styling (only works if Tailwind Scrollbar plugin is enabled) --}}
+<style>
+    /* Hide scrollbar for WebKit browsers if plugin not available */
+    ::-webkit-scrollbar {
+        height: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 10px;
+    }
+</style>
+
 
                 {{-- ====== Cart With Products ====== --}}
             @else
@@ -326,7 +362,7 @@
                         </button>
                     </form>
 
-                    <a href="{{ route('shop') }}"
+                    <a href="{{ route('home') }}"
                         class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-blue-700">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none">
                             <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"

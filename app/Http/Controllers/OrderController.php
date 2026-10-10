@@ -1,54 +1,113 @@
 <?php
+
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
-use App\Models\Order;
+use Barryvdh\DomPDF\Facade\Pdf as PDF; // only if you install the package
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    // Display orders grouped by client
-    public function index()
-    {
-        $orders = Order::with('items')
-        ->orderBy('created_at','desc')
-        ->take(8)
-        ->get();
-        $ordersGroupedByClient = $orders->groupBy(function ($order) {
-            return $order->name; // Assuming 'name' is the client name field
-        });
+    /** Latest orders grouped by customer name (or user_id if you prefer) */
+    public function index(Request $request)
+{
+    $q      = $request->input('q');
+    $status = $request->input('status');
 
-        return view('backend.orders.orders', compact('ordersGroupedByClient'));
-    }
+    $orders = Order::query()
+        ->withCount('items')
+        ->when($q, function ($qry) use ($q) {
+            $qry->where(function ($w) use ($q) {
+                $w->where('id', $q)
+                  ->orWhere('name', 'like', "%{$q}%")
+                  ->orWhere('email', 'like', "%{$q}%")
+                  ->orWhere('phone', 'like', "%{$q}%");
+            });
+        })
+        ->when($status, fn($qry) => $qry->where('order_status', $status))
+        ->orderByDesc('created_at')
+        ->paginate(12)
+        ->withQueryString();
 
- 
+    return view('backend.orders.index', compact('orders', 'q', 'status'));
+}
+    public function show(Order $order)
+{
+    // eager load items + optional product info
+    $order->load(['items.product', 'user']);
+
+    return view('backend.orders.show', compact('order'));
+}
+
     public function verify(OrderItem $orderItem)
     {
-        $orderItem->update(['status' => 'Verified']);
-        return redirect()->route('admin.orders')->with('status', 'Order item verified!');
+        $orderItem->update(['status' => OrderItem::STATUS_VERIFIED]);
+        $orderItem->order->refreshStatus();
+        return back()->with('status', 'Order item verified!');
     }
 
     public function ship(OrderItem $orderItem)
     {
-        $orderItem->update(['status' => 'Shipped']);
-        return redirect()->route('admin.orders')->with('status', 'Order item shipped!');
+        $orderItem->update(['status' => OrderItem::STATUS_SHIPPED]);
+        $orderItem->order->refreshStatus();
+        return back()->with('status', 'Order item shipped!');
     }
 
     public function deliver(OrderItem $orderItem)
     {
-        $orderItem->update(['status' => 'Delivered']);
-        return redirect()->route('admin.orders')->with('status', 'Order item delivered!');
+        $orderItem->update(['status' => OrderItem::STATUS_DELIVERED]);
+        $orderItem->order->refreshStatus();
+        return back()->with('status', 'Order item delivered!');
     }
-    // OrderController.php
+
+    public function cancelItem(OrderItem $orderItem)
+    {
+        $orderItem->update(['status' => OrderItem::STATUS_CANCELLED]);
+        $orderItem->order->refreshStatus();
+        return back()->with('status', 'Order item cancelled!');
+    }
+
 public function destroy(Order $order)
 {
-    // Delete associated order items
-    $order->items()->delete();
+    $order->load('items.product');
 
-    // Delete the order itself
-    $order->delete();
+    DB::transaction(function () use ($order) {
+        foreach ($order->items as $item) {
+            if ($item->product) {
+                $p = $item->product()->lockForUpdate()->first();
+                $p->quantity += $item->quantity;
+                if (property_exists($p, 'stock_status') && $p->quantity > 0) {
+                    $p->stock_status = 'in_stock';
+                }
+                $p->save();
+            }
+        }
+        $order->items()->delete();
+        $order->delete();
+    });
 
-    return redirect()->back()->with('status', 'Order deleted successfully!');
+    return back()->with('status', 'Order deleted and stock restored.');
 }
+
+
+
+
+public function invoiceHtml(Order $order)
+{
+    $order->load(['items.product','user']);
+    return view('backend.orders.invoice', compact('order'));
+}
+
+public function invoicePdf(Order $order)
+{
+    // REQUIREMENT: composer require barryvdh/laravel-dompdf
+    $order->load(['items.product','user']);
+    $pdf = PDF::loadView('backend.orders.invoice', compact('order'))->setPaper('a4');
+    $file = 'invoice-'.now()->format('Ymd').'-'.$order->id.'.pdf';
+    return $pdf->download($file);
+}
+
 
 }

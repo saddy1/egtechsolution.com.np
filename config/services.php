@@ -49,4 +49,9 @@ return [
 
 
 
+    // Shared secret for the partner API used by broadtechinfosys.com.np
+    'partner' => [
+        'token' => env('PARTNER_API_TOKEN'),
+    ],
+
 ];

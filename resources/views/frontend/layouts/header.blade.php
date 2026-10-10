@@ -79,20 +79,15 @@
                                             Shop
                                         </a>
                                     </li>
+                                  
                                     <li>
-                                        <a href="shop.html"
-                                            class="nav-link menu-title  text-white hover:text-gray-50 font-medium py-2 px-3 rounded-lg hover:bg-white/20 transition-all duration-200">
-                                            Category
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="about-us.html"
+                                        <a href="{{route('about')}}"
                                             class="nav-link menu-title  text-white hover:text-gray-50 font-medium py-2 px-3 rounded-lg hover:bg-white/20 transition-all duration-200">
                                             About Us
                                         </a>
                                     </li>
                                     <li>
-                                        <a href="contact-us.html"
+                                        <a href="{{ route('contact') }}"
                                             class="nav-link menu-title  text-white hover:text-gray-50 font-medium py-2 px-3 rounded-lg hover:bg-white/20 transition-all duration-200">
                                             Contact Us
                                         </a>
@@ -220,10 +215,10 @@
                     class="block py-3 px-4 text-gray-700 hover:bg-theme-green/20 hover:text-gray-900 rounded-lg font-medium transition-colors duration-150">Shop</a>
                 <a href="shop.html"
                     class="block py-3 px-4 text-gray-700 hover:bg-theme-green/20 hover:text-gray-900 rounded-lg font-medium transition-colors duration-150">Category</a>
-                <a href="about-us.html"
+                <a href="{{route('about')}}"
                     class="block py-3 px-4 text-gray-700 hover:bg-theme-green/20 hover:text-gray-900 rounded-lg font-medium transition-colors duration-150">About
                     Us</a>
-                <a href="contact-us.html"
+                <a href="{{ route('contact') }}"
                     class="block py-3 px-4 text-gray-700 hover:bg-theme-green/20 hover:text-gray-900 rounded-lg font-medium transition-colors duration-150">Contact
                     Us</a>
             </nav>

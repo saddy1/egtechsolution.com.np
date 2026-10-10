@@ -46,14 +46,23 @@
 
           {{-- Pricing --}}
           <div class="grid grid-cols-1 gap-6 md:grid-cols-12">
-            <div class="md:col-span-3">
+
+            <div class="md:col-span-2">
+              <label class="mb-1 block text-sm font-medium">Cost Price (Rs.) *</label>
+              <input type="number" name="cost_price" step="0.01" min="0" value="{{ old('cost_price', $product->cost_price) }}"
+                     class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500" required>
+              @error('cost_price') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            
+            <div class="md:col-span-2">
               <label class="mb-1 block text-sm font-medium">Regular Price (Rs.) *</label>
               <input type="number" name="price" step="0.01" min="0" value="{{ old('price', $product->price) }}"
                      class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500" required>
               @error('price') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
             </div>
 
-            <div class="md:col-span-3">
+            <div class="md:col-span-2">
               <label class="mb-1 block text-sm font-medium">Sale Price (Rs.)</label>
               <input type="number" name="sale_price" step="0.01" min="0" value="{{ old('sale_price', $product->sale_price) }}"
                      class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500">

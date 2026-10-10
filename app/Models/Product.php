@@ -19,6 +19,7 @@ class Product extends Model
         'keywords',
         'meta_title','meta_description',
         'image','is_active','is_featured',
+        'cost_price','supplier_id', // Added fields
     ];
 
     protected $casts = [
@@ -36,6 +37,10 @@ class Product extends Model
     {
         return $this->hasMany(ProductSpecification::class);
     }
+   public function supplier()
+{
+    return $this->belongsTo(Supplier::class); // uses supplier_id by default
+}
 
     // Optional: final price accessor
     public function getFinalPriceAttribute()

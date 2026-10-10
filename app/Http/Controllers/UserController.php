@@ -112,4 +112,10 @@ class UserController extends Controller
         // Redirect the user to the login page with a success message
         return redirect()->route('login')->with('status', 'Password has been reset successfully.');
     }
+
+    public function users()
+    {
+        $users = User::all();
+        return view('backend.users.index', compact('users'));
+    }
 }

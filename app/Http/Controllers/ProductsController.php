@@ -48,6 +48,8 @@ class ProductsController extends Controller
         return view('backend.product.create', compact('brands', 'categories'));
     }
 
+
+
     /**
      * Store a newly created resource in storage.
      */
@@ -56,6 +58,7 @@ class ProductsController extends Controller
         $data = $request->validate([
             'name'             => ['required', 'string', 'max:255', 'unique:products,name'],
             'sku'              => ['required', 'string', 'max:255', 'unique:products,sku'],
+            'cost_price'       => ['required', 'numeric', 'min:0'],
             'price'            => ['required', 'numeric', 'min:0'],
             'sale_price'       => ['nullable', 'numeric', 'min:0'],
             'quantity'         => ['required', 'integer', 'min:0'],
@@ -96,6 +99,7 @@ class ProductsController extends Controller
             'name'             => $data['name'],
             'slug'             => $data['slug'],
             'description'      => $data['description'],
+            'cost_price'       => $data['cost_price'],
             'price'            => $data['price'],
             'sale_price'       => $data['sale_price'] ?? null,
             'quantity'         => $data['quantity'],
@@ -162,6 +166,7 @@ class ProductsController extends Controller
             'name'             => ['required', 'string', 'max:255', 'unique:products,name,' . $product->id],
             'slug'             => ['nullable', 'string', 'max:255', 'unique:products,slug,' . $product->id],
             'sku'              => ['required', 'string', 'max:255', 'unique:products,sku,' . $product->id],
+            'cost_price'       => ['required', 'numeric', 'min:0'],
             'price'            => ['required', 'numeric', 'min:0'],
             'sale_price'       => ['nullable', 'numeric', 'min:0'],
             'quantity'         => ['required', 'integer', 'min:0'],

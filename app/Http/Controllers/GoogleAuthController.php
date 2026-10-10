@@ -18,7 +18,7 @@ class GoogleAuthController extends Controller
     public function callbackGoogle()
     {
         try {
-            $google_user = Socialite::driver('google')->user();
+            $google_user = Socialite::driver('google')->stateless()->user();
 
             // Check if the user with the same email already exists
             $user = User::where('email', $google_user->getEmail())->first();
@@ -40,8 +40,9 @@ class GoogleAuthController extends Controller
             Auth::login($user);
             return redirect()->intended('/');
         } catch (\Throwable $th) {
-            dd('Something went wrong: ' . $th->getMessage());
-        }
+    dd($th);
+}
+
     }
 
     public function store(Request $request)
@@ -61,7 +62,7 @@ class GoogleAuthController extends Controller
         $customer->password = Hash::make($request->input('password'));
 
         if ($customer->save()) {
-            return back()->with('success', 'You have been registered successfully');
+            return redirect('/login')->with('success', 'You have been registered successfully');
         }
 
         return back()->withErrors(['error' => 'There was a problem with your registration.'])->withInput();
@@ -69,6 +70,9 @@ class GoogleAuthController extends Controller
 
     public function login()
     {
+        if (Auth::check()) {
+            return redirect('/'); // Redirect authenticated users to the homepage
+        }   
         return view('frontend.customer.index');
     }
 
@@ -94,6 +98,9 @@ class GoogleAuthController extends Controller
 
     public function signup()
     {
+        if (Auth::check()) {
+            return redirect('/'); // Redirect authenticated users to the homepage
+        }
         return view('frontend.customer.create', ['customer' => User::latest()->get()]);
     }
 }

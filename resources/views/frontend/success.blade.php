@@ -31,7 +31,7 @@
                         @foreach ($order->items as $item)
                             <tr class="hover:bg-gray-50">
                                 <td class="py-4 px-2">
-                                    <img src="{{ asset('path_to_image/' . $item->product_id . '.jpg') }}" alt="{{ $item->product_name }}" class="w-20 h-20 object-cover rounded">
+                                    <img src="{{ asset($item->image )}}" alt="{{ $item->image }}" class="w-20 h-20 object-cover rounded">
                                 </td>
                                 <td class="py-4 px-4">
                                     <p class="text-gray-500 text-sm">Product Name</p>
@@ -43,7 +43,7 @@
                                 </td>
                                 <td class="py-4 px-4">
                                     <p class="text-gray-500 text-sm">Price</p>
-                                    <h5 class="text-gray-800">${{ number_format($item->price, 2) }}</h5>
+                                    <h5 class="text-gray-800">Rs.{{ number_format($item->price, 2) }}</h5>
                                 </td>
                             </tr>
                         @endforeach
@@ -53,17 +53,11 @@
                             <td colspan="3" class="py-3 px-4 text-right text-gray-700">Subtotal :</td>
                             <td class="py-3 px-4 text-gray-800">${{ number_format($order->items->sum('total'), 2) }}</td>
                         </tr>
-                        <tr class="font-medium">
-                            <td colspan="3" class="py-3 px-4 text-right text-gray-700">Shipping :</td>
-                            <td class="py-3 px-4 text-gray-800">$12.00</td>
-                        </tr>
-                        <tr class="font-medium">
-                            <td colspan="3" class="py-3 px-4 text-right text-gray-700">Tax (GST) :</td>
-                            <td class="py-3 px-4 text-gray-800">$10.00</td>
-                        </tr>
+                     
+                     
                         <tr class="font-bold text-lg text-green-600">
                             <td colspan="3" class="py-3 px-4 text-right">Total Price :</td>
-                            <td class="py-3 px-4">${{ number_format($order->total, 2) }}</td>
+                            <td class="py-3 px-4">Rs.{{ number_format($order->total, 2) }}</td>
                         </tr>
                     </tfoot>
                 </table>

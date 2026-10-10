@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Auth;
 
 class FrontendController extends Controller
 {
+    
     public function getCartCount()
     {
         if (auth()->check()) {
@@ -70,7 +71,7 @@ class FrontendController extends Controller
                 ->when(!empty($catIds), fn($q) => $q->whereIn('category_id', $catIds))
                 ->when($request->filled('max_price'), fn($q) => $q->where('price', '<=', $maxPrice))
                 ->orderByDesc('created_at')
-                ->paginate(12)
+                ->paginate(50)
                 ->withQueryString();
 
             // Render the SEARCH page (sidebar + results)
@@ -90,11 +91,11 @@ class FrontendController extends Controller
 
         // ----- No filters -> render homepage/index as usual -----
         $products = Product::with(['brand:id,name', 'category:id,name'])->latest()->get();
-        $Randproducts = Product::inRandomOrder()->limit(8)->get();
-        $featuredProducts = Product::where('is_featured', true)->where('is_active', true)->take(8)->get();
+        $Randproducts = Product::inRandomOrder()->limit(16)->get();
+        $featuredProducts = Product::where('is_featured', true)->where('is_active', true)->latest()->take(8)->get();
 
         // SEO
-        $meta_title = "Buy Electronics, Gadgets, and More | EG Tech Solution";
+        $meta_title = "Buy Electronics, Gadgets, and More | EG Tech Solution | Best Prices in Nepal | Best Deals | Best Offers | Best Computer Shop | Best Electronics Store | Budget Friendly";
         $meta_description = "Shop the latest electronics, laptops, mobiles, and gadgets at the best prices. Enjoy discounts, featured deals, and fast delivery from EG Tech Solution.";
         $meta_keywords = "electronics Nepal, Buy electronics online Nepal, mobiles Nepal, laptop deals Nepal, smartphone accessories Nepal, best electronics shop Nepal, cheap electronics Nepal, gadgets Nepal, laptop price in Nepal, mobile price in Nepal, home appliances Nepal, smart TV Nepal, refrigerator deals Nepal, electronics store Biratnagar, electronics shop Kathmandu, electronic accessories Nepal, tech shop Nepal, tablet Nepal, gadgets & accessories Nepal, TV deals Nepal, gaming laptop Nepal, electronic sale Nepal, electronics offers Nepal, mobile shop near me, computer hardware Nepal, tech deals Nepal, smart home devices Nepal, earphones Nepal, power bank Nepal, smartwatch Nepal
 ";

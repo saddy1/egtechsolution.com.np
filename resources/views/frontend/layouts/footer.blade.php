@@ -20,6 +20,7 @@
               <ul class="text-white text-sm space-y-2">
                   <li>Email: egtechsolution1@gmail.com</li>
                   <li>Phone: +977 9848583865</li>
+                  <li>Contact: 977 9864830276</li>
                   <li>Location: Dhangadhi-Kailali, Nepal</li>
               </ul>
           </div>

@@ -5,9 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EG Tech - Admin Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://unpkg.com/alpinejs"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <style>
@@ -99,18 +100,31 @@
                 <li><a href=" {{ route('banner.index') }}"
                         class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
                         <i class="fas fa-star"></i><span>Banners</span></a></li>
-                <li><a href="#orders" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
+                <li><a href="{{ route('admin.orders.index') }}"
+                        class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
                         <i class="fas fa-shopping-cart"></i><span>Orders</span></a></li>
-                <li><a href="#stock" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
+
+                <li><a href="{{ route('suppliers.index') }}"
+                        class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
+                        <i class="fas fa-shopping-cart"></i><span>Suppliers</span></a></li>
+                <li><a href="{{ route('stock.stock.index') }}"
+                        class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
                         <i class="fas fa-warehouse"></i><span>Stock Management</span></a></li>
-                <li><a href="#bills" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
+                <li><a href="{{ route('billing.index') }}"
+                        class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
                         <i class="fas fa-file-invoice"></i><span>Bills & Invoices</span></a></li>
-                <li><a href="#analytics" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
-                        <i class="fas fa-chart-line"></i><span>Analytics</span></a></li>
-                <li><a href="#profit-loss" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
+                <li><a href="{{ route('stock.summary') }}"
+                        class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
+                        <i class="fas fa-chart-line"></i><span>Summary</span></a></li>
+                <li><a href="{{ route('billing.profit') }}"
+                        class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
                         <i class="fas fa-calculator"></i><span>Profit & Loss</span></a></li>
-                <li><a href="#customers" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
+                <li><a href="{{ route('users.index') }}"
+                        class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
                         <i class="fas fa-users"></i><span>Customers</span></a></li>
+                <li><a href="{{ route('credits.index') }}"
+                        class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
+                        <i class="fas fa-cog"></i><span>Credit</span></a></li>
                 <li><a href="#settings" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
                         <i class="fas fa-cog"></i><span>Settings</span></a></li>
             </ul>
@@ -305,75 +319,75 @@
 
         // Add some interactive functionality
         document.addEventListener('DOMContentLoaded', function() {
-            // Add hover effects to nav items
-            navItems.forEach(item => {
-                if (!item.classList.contains('active')) {
-                    item.addEventListener('mouseenter', () => {
-                        item.classList.add('bg-gray-700');
-                    });
-                    item.addEventListener('mouseleave', () => {
-                        item.classList.remove('bg-gray-700');
-                    });
-                }
-            });
-
-            // Auto-refresh data simulation
-            setInterval(() => {
-                    // Simulate real-time updates
-                    const statsElements = document.querySelectorAll('.text-3xl.font-bold');
-                    statsElements.forEach(element => {
-                            if (element.textContent.includes(')) {
-                                    const currentValue = parseFloat(element.textContent.replace(/[$,]/g,
-                                        ''));
-                                    const change = (Math.random() - 0.5) * 100;
-                                    const newValue = Math.max(0, currentValue + change); element
-                                    .textContent = ' + newValue.toLocaleString('
-                                    en - US ', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                });
+                    // Add hover effects to nav items
+                    navItems.forEach(item => {
+                        if (!item.classList.contains('active')) {
+                            item.addEventListener('mouseenter', () => {
+                                item.classList.add('bg-gray-700');
+                            });
+                            item.addEventListener('mouseleave', () => {
+                                item.classList.remove('bg-gray-700');
+                            });
                         }
                     });
-            }, 30000); // Update every 30 seconds
 
-        // Add notification system
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `fixed top-20 right-4 z-50 p-4 rounded-lg shadow-lg ${
+                    // Auto-refresh data simulation
+                    setInterval(() => {
+                            // Simulate real-time updates
+                            const statsElements = document.querySelectorAll('.text-3xl.font-bold');
+                            statsElements.forEach(element => {
+                                    if (element.textContent.includes(')) {
+                                            const currentValue = parseFloat(element.textContent.replace(/[$,]/g,
+                                                ''));
+                                            const change = (Math.random() - 0.5) * 100;
+                                            const newValue = Math.max(0, currentValue + change); element
+                                            .textContent = ' + newValue.toLocaleString('
+                                            en - US ', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        });
+                                }
+                            });
+                    }, 30000); // Update every 30 seconds
+
+                // Add notification system
+                function showNotification(message, type = 'info') {
+                    const notification = document.createElement('div');
+                    notification.className = `fixed top-20 right-4 z-50 p-4 rounded-lg shadow-lg ${
                     type === 'success' ? 'bg-green-500' : 
                     type === 'error' ? 'bg-red-500' : 
                     'bg-blue-500'
                 } text-white transform translate-x-full transition-transform duration-300`;
-            notification.textContent = message;
+                    notification.textContent = message;
 
-            document.body.appendChild(notification);
+                    document.body.appendChild(notification);
 
-            setTimeout(() => {
-                notification.classList.remove('translate-x-full');
-            }, 100);
+                    setTimeout(() => {
+                        notification.classList.remove('translate-x-full');
+                    }, 100);
 
-            setTimeout(() => {
-                notification.classList.add('translate-x-full');
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 3000);
-        }
+                    setTimeout(() => {
+                        notification.classList.add('translate-x-full');
+                        setTimeout(() => {
+                            document.body.removeChild(notification);
+                        }, 300);
+                    }, 3000);
+                }
 
-        // Add notification triggers for demo purposes
-        document.querySelectorAll('button').forEach(button => {
-            if (button.textContent.includes('Add') || button.textContent.includes('Generate') || button
-                .textContent.includes('Update')) {
-                button.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const action = button.textContent.trim();
-                    showNotification(`${action} action completed successfully!`, 'success');
+                // Add notification triggers for demo purposes
+                document.querySelectorAll('button').forEach(button => {
+                    if (button.textContent.includes('Add') || button.textContent.includes('Generate') || button
+                        .textContent.includes('Update')) {
+                        button.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const action = button.textContent.trim();
+                            showNotification(`${action} action completed successfully!`, 'success');
+                        });
+                    }
                 });
-            }
-        });
 
-        // Bill Generation functionality
-        const generateBillModal = `
+                // Bill Generation functionality
+                const generateBillModal = `
                 <div id="billModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
                     <div class="bg-white rounded-xl p-6 w-full max-w-2xl mx-4">
                         <div class="flex justify-between items-center mb-4">
@@ -440,36 +454,36 @@
                 </div>
             `;
 
-        document.body.insertAdjacentHTML('beforeend', generateBillModal);
+                document.body.insertAdjacentHTML('beforeend', generateBillModal);
 
-        // Modal functionality
-        const billModal = document.getElementById('billModal');
-        const closeBillModal = document.getElementById('closeBillModal');
-        const closeBillModal2 = document.getElementById('closeBillModal2');
+                // Modal functionality
+                const billModal = document.getElementById('billModal');
+                const closeBillModal = document.getElementById('closeBillModal');
+                const closeBillModal2 = document.getElementById('closeBillModal2');
 
-        document.querySelectorAll('button').forEach(button => {
-            if (button.textContent.includes('Generate Invoice')) {
-                button.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    billModal.classList.remove('hidden');
-                    billModal.classList.add('flex');
+                document.querySelectorAll('button').forEach(button => {
+                    if (button.textContent.includes('Generate Invoice')) {
+                        button.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            billModal.classList.remove('hidden');
+                            billModal.classList.add('flex');
+                        });
+                    }
                 });
-            }
-        });
 
-        [closeBillModal, closeBillModal2].forEach(btn => {
-            btn.addEventListener('click', () => {
-                billModal.classList.add('hidden');
-                billModal.classList.remove('flex');
-            });
-        });
+                [closeBillModal, closeBillModal2].forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        billModal.classList.add('hidden');
+                        billModal.classList.remove('flex');
+                    });
+                });
 
-        // Add item functionality
-        document.getElementById('addItem').addEventListener('click', () => {
-            const itemsContainer = document.getElementById('invoiceItems');
-            const newItem = document.createElement('div');
-            newItem.className = 'invoice-item grid grid-cols-12 gap-2 mb-2';
-            newItem.innerHTML = `
+                // Add item functionality
+                document.getElementById('addItem').addEventListener('click', () => {
+                    const itemsContainer = document.getElementById('invoiceItems');
+                    const newItem = document.createElement('div');
+                    newItem.className = 'invoice-item grid grid-cols-12 gap-2 mb-2';
+                    newItem.innerHTML = `
                     <input type="text" placeholder="Item" class="col-span-4 px-2 py-1 border rounded text-sm">
                     <input type="number" placeholder="Qty" class="col-span-2 px-2 py-1 border rounded text-sm">
                     <input type="number" placeholder="Price" class="col-span-3 px-2 py-1 border rounded text-sm">
@@ -478,95 +492,94 @@
                         <i class="fas fa-trash"></i>
                     </button>
                 `;
-            itemsContainer.appendChild(newItem);
+                    itemsContainer.appendChild(newItem);
 
-            // Add remove functionality
-            newItem.querySelector('button').addEventListener('click', () => {
-                newItem.remove();
-                updateInvoiceTotal();
-            });
+                    // Add remove functionality
+                    newItem.querySelector('button').addEventListener('click', () => {
+                        newItem.remove();
+                        updateInvoiceTotal();
+                    });
 
-            // Add calculation functionality
-            const qtyInput = newItem.querySelector('input[placeholder="Qty"]');
-            const priceInput = newItem.querySelector('input[placeholder="Price"]');
-            const totalInput = newItem.querySelector('input[placeholder="Total"]');
+                    // Add calculation functionality
+                    const qtyInput = newItem.querySelector('input[placeholder="Qty"]');
+                    const priceInput = newItem.querySelector('input[placeholder="Price"]');
+                    const totalInput = newItem.querySelector('input[placeholder="Total"]');
 
-            [qtyInput, priceInput].forEach(input => {
-                input.addEventListener('input', () => {
-                    const qty = parseFloat(qtyInput.value) || 0;
-                    const price = parseFloat(priceInput.value) || 0;
-                    totalInput.value = (qty * price).toFixed(2);
-                    updateInvoiceTotal();
+                    [qtyInput, priceInput].forEach(input => {
+                        input.addEventListener('input', () => {
+                            const qty = parseFloat(qtyInput.value) || 0;
+                            const price = parseFloat(priceInput.value) || 0;
+                            totalInput.value = (qty * price).toFixed(2);
+                            updateInvoiceTotal();
+                        });
+                    });
                 });
-            });
-        });
 
-        function updateInvoiceTotal() {
-            let total = 0;
-            document.querySelectorAll('input[placeholder="Total"]').forEach(input => {
-                total += parseFloat(input.value) || 0;
-            });
-            document.getElementById('invoiceTotal').textContent = total.toFixed(2);
-        }
+                function updateInvoiceTotal() {
+                    let total = 0;
+                    document.querySelectorAll('input[placeholder="Total"]').forEach(input => {
+                        total += parseFloat(input.value) || 0;
+                    });
+                    document.getElementById('invoiceTotal').textContent = total.toFixed(2);
+                }
 
-        // Form submission
-        document.getElementById('billForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            showNotification('Invoice generated successfully!', 'success');
-            billModal.classList.add('hidden');
-            billModal.classList.remove('flex');
-        });
-
-        // Stock management functionality
-        document.querySelectorAll('button').forEach(button => {
-            if (button.textContent.includes('Update Stock')) {
-                button.addEventListener('click', (e) => {
+                // Form submission
+                document.getElementById('billForm').addEventListener('submit', (e) => {
                     e.preventDefault();
-                    const newStock = prompt('Enter new stock quantity:');
-                    if (newStock !== null && !isNaN(newStock)) {
-                        const row = button.closest('tr');
-                        const stockCell = row.children[1];
-                        stockCell.textContent = newStock;
-                        showNotification('Stock updated successfully!', 'success');
+                    showNotification('Invoice generated successfully!', 'success');
+                    billModal.classList.add('hidden');
+                    billModal.classList.remove('flex');
+                });
+
+                // Stock management functionality
+                document.querySelectorAll('button').forEach(button => {
+                    if (button.textContent.includes('Update Stock')) {
+                        button.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const newStock = prompt('Enter new stock quantity:');
+                            if (newStock !== null && !isNaN(newStock)) {
+                                const row = button.closest('tr');
+                                const stockCell = row.children[1];
+                                stockCell.textContent = newStock;
+                                showNotification('Stock updated successfully!', 'success');
+                            }
+                        });
                     }
                 });
-            }
-        });
 
-        // Reorder functionality
-        document.querySelectorAll('button').forEach(button => {
-            if (button.textContent.includes('Reorder')) {
-                button.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const quantity = prompt('Enter reorder quantity:');
-                    if (quantity !== null && !isNaN(quantity)) {
-                        showNotification(`Reorder for ${quantity} units placed successfully!`,
-                            'success');
+                // Reorder functionality
+                document.querySelectorAll('button').forEach(button => {
+                    if (button.textContent.includes('Reorder')) {
+                        button.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const quantity = prompt('Enter reorder quantity:');
+                            if (quantity !== null && !isNaN(quantity)) {
+                                showNotification(`Reorder for ${quantity} units placed successfully!`,
+                                    'success');
+                            }
+                        });
                     }
                 });
-            }
-        });
-        });
     </script>
 
     <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const profileDropdown = document.getElementById("profileDropdown");
-        const profileMenu = document.getElementById("profileMenu");
+        document.addEventListener("DOMContentLoaded", function() {
+            const profileDropdown = document.getElementById("profileDropdown");
+            const profileMenu = document.getElementById("profileMenu");
 
-        profileDropdown.addEventListener("click", function (e) {
-            e.stopPropagation();
-            profileMenu.classList.toggle("hidden");
-        });
+            profileDropdown.addEventListener("click", function(e) {
+                e.stopPropagation();
+                profileMenu.classList.toggle("hidden");
+            });
 
-        // Close when clicking outside
-        document.addEventListener("click", function (e) {
-            if (!profileDropdown.contains(e.target) && !profileMenu.contains(e.target)) {
-                profileMenu.classList.add("hidden");
-            }
+            // Close when clicking outside
+            document.addEventListener("click", function(e) {
+                if (!profileDropdown.contains(e.target) && !profileMenu.contains(e.target)) {
+                    profileMenu.classList.add("hidden");
+                }
+            });
         });
-    });
-</script>
+    </script>
 
 </body>
 
