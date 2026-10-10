@@ -59,14 +59,20 @@ fi
 # ── PHP packages ──────────────────────────────────────────────────────────
 step "Installing PHP packages"
 if command -v composer >/dev/null 2>&1; then
-    COMPOSER_ALLOW_SUPERUSER=1 "$PHP" "$(command -v composer)" install --no-dev --optimize-autoloader --no-interaction
+    COMPOSER_ALLOW_SUPERUSER=1 "$PHP" "$(command -v composer)" install --no-dev --optimize-autoloader --no-interaction --no-scripts
 elif [ -f composer.phar ]; then
-    "$PHP" composer.phar install --no-dev --optimize-autoloader --no-interaction
+    "$PHP" composer.phar install --no-dev --optimize-autoloader --no-interaction --no-scripts
 elif [ -f vendor/autoload.php ]; then
     warn "Composer not found — keeping the existing vendor/ folder."
 else
     fail "Composer not found and there is no vendor/ folder. Install Composer, or upload vendor/ from your computer."
 fi
+
+# Composer's own post-install scripts need proc_open, which many cPanel hosts disable,
+# so they are skipped above and the one that matters is run here directly. The old
+# package list is removed first: it may name dev packages that were just uninstalled.
+rm -f bootstrap/cache/packages.php bootstrap/cache/services.php
+artisan package:discover
 
 # ── CSS / JS ──────────────────────────────────────────────────────────────
 step "Building CSS and JavaScript"
@@ -138,7 +144,8 @@ fi
 # ── Done (the EXIT trap brings the site back up) ──────────────────────────
 step "Deployed successfully"
 
-if artisan schedule:list 2>/dev/null | grep -q 'egtech' && ! crontab -l 2>/dev/null | grep -q 'schedule:run'; then
-    warn "Add this cron job in cPanel > Cron Jobs (every minute) so products and orders keep syncing:"
-    echo "      * * * * * cd $(pwd) && $PHP artisan schedule:run >> /dev/null 2>&1"
+if artisan list --raw 2>/dev/null | grep -q '^egtech:sync' && ! crontab -l 2>/dev/null | grep -q 'egtech:sync'; then
+    warn "Add these two cron jobs in cPanel > Cron Jobs so EG Tech products and orders keep syncing:"
+    echo "      */15 * * * * cd $(pwd) && $PHP artisan egtech:sync >> /dev/null 2>&1"
+    echo "      */5 * * * * cd $(pwd) && $PHP artisan egtech:push-orders >> /dev/null 2>&1"
 fi
