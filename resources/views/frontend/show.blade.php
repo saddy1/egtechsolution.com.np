@@ -25,11 +25,7 @@
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {{-- Left: Gallery --}}
                 <div class="order-2 lg:order-1">
-                    <div class="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
-                        <img src="{{ asset($product->image) }}" alt="{{ $product->image }}"
-                            class="h-auto w-full rounded-lg object-contain" style="max-height: 520px" loading="eager">
-                    </div>
-                    {{-- (Optional) thumbnails row could go here --}}
+                    @include('frontend.partials.gallery', ['photos' => $product->gallery(), 'alt' => $product->name])
                 </div>
 
                 {{-- Right: Info --}}

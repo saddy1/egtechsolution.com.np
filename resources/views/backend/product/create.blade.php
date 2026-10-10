@@ -252,6 +252,14 @@
             </div>
           </div>
 
+          <div>
+            <label class="mb-1 block text-sm font-medium text-gray-700">More Photos (gallery)</label>
+            <input type="file" name="gallery[]" accept="image/jpeg,image/png,image/webp" multiple class="block w-full text-sm text-gray-900">
+            <p class="mt-1 text-xs text-gray-500">Optional. Select several at once: other angles, ports, box contents. Up to 10, 5 MB each.</p>
+            @error('gallery') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+            @error('gallery.*') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+          </div>
+
           {{-- Actions --}}
           <div class="sticky bottom-0 z-10 -mx-5 border-t bg-white/80 px-5 pt-4 backdrop-blur sm:static sm:border-none sm:bg-transparent sm:px-0 sm:pt-2">
             <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

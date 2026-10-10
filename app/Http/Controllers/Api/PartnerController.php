@@ -22,7 +22,7 @@ class PartnerController extends Controller
 {
     public function products(Request $request)
     {
-        $products = Product::with(['category', 'brand', 'specifications'])
+        $products = Product::with(['category', 'brand', 'specifications', 'images'])
             ->where('is_active', true)
             ->orderBy('id')
             ->paginate(min((int) $request->get('per_page', 100), 200));
@@ -39,6 +39,7 @@ class PartnerController extends Controller
                 'category'       => $p->category?->name,
                 'brand'          => $p->brand?->name,
                 'image'          => $p->image ? asset($p->image) : null,
+                'images'         => array_map(fn ($path) => asset($path), $p->gallery()),
                 'specifications' => $p->specifications->pluck('value', 'name'),
                 'is_featured'    => $p->is_featured,
                 'url'            => url('/products/'.$p->slug.'/'.$p->id),

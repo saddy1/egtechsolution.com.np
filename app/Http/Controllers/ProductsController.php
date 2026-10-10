@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\ProductSpecification;
@@ -74,6 +75,8 @@ class ProductsController extends Controller
             'image'            => ['required', 'image', 'mimes:jpeg,jpg,png,webp,gif', 'max:5120'],
             'is_active'        => ['nullable', 'boolean'],
             'is_featured'      => ['nullable', 'boolean'],
+            'gallery'          => ['nullable', 'array', 'max:10'],
+            'gallery.*'        => ['image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
         ]);
 
         // slug (not in form) → generate unique-ish
@@ -138,6 +141,8 @@ class ProductsController extends Controller
             }
         }
 
+        $this->storeGallery($request, $product);
+
         return redirect()
             ->route('product.index')
             ->with('success', 'Product created successfully');
@@ -181,6 +186,8 @@ class ProductsController extends Controller
             'image'            => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp,gif', 'max:5120'],
             'is_active'        => ['nullable', 'boolean'],
             'is_featured'      => ['nullable', 'boolean'],
+            'gallery'          => ['nullable', 'array', 'max:10'],
+            'gallery.*'        => ['image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
         ]);
 
         // keep slug if not provided
@@ -225,12 +232,14 @@ class ProductsController extends Controller
 
         // Replace specifications if provided (same behavior you had)
         if ($request->filled('specifications')) {
-            $product->productSpecifications()->delete();
+            $product->specifications()->delete();
             $specs = $this->parseSpecifications($request->specifications);
             if (!empty($specs)) {
-                $product->productSpecifications()->createMany($specs);
+                $product->specifications()->createMany($specs);
             }
         }
+
+        $this->storeGallery($request, $product);
 
         return redirect()
             ->route('product.index')
@@ -247,6 +256,13 @@ class ProductsController extends Controller
 
         // Delete attached specifications
         $product->specifications()->delete();
+
+        // Delete gallery photos (their rows go with the product)
+        foreach ($product->images as $image) {
+            if (file_exists(public_path($image->path))) {
+                unlink(public_path($image->path));
+            }
+        }
 
         // Delete image file if exists
      if( $product->image && file_exists(public_path($product->image)) ) {
@@ -288,5 +304,29 @@ class ProductsController extends Controller
             }
         }
         return $specs;
+    }
+
+    public function destroyImage(Product $product, ProductImage $image)
+    {
+        abort_unless($image->product_id === $product->id, 404);
+
+        if (file_exists(public_path($image->path))) {
+            unlink(public_path($image->path));
+        }
+        $image->delete();
+
+        return back()->with('success', 'Photo removed.');
+    }
+
+    /** Save the extra photos uploaded as gallery[] next to the main image, in public/product. */
+    private function storeGallery(Request $request, Product $product): void
+    {
+        $order = (int) $product->images()->max('sort_order');
+
+        foreach ($request->file('gallery', []) as $file) {
+            $name = Str::slug($product->sku).'-'.Str::lower(Str::random(8)).'.'.$file->extension();
+            $file->move(public_path('product'), $name);
+            $product->images()->create(['path' => 'product/'.$name, 'sort_order' => ++$order]);
+        }
     }
 }

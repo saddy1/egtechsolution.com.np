@@ -181,7 +181,7 @@ class FrontendController extends Controller
     // app/Http/Controllers/ProductController.php
     public function show(string $slug)
     {
-        $product = Product::with(['brand:id,name', 'category:id,name', 'specifications'])
+        $product = Product::with(['brand:id,name', 'category:id,name', 'specifications', 'images'])
             ->where('slug', $slug)
             ->where('is_active', true)
             ->firstOrFail();

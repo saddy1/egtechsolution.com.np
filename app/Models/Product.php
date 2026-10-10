@@ -42,6 +42,18 @@ class Product extends Model
     return $this->belongsTo(Supplier::class); // uses supplier_id by default
 }
 
+    /** Extra gallery photos; the main one is the "image" column. */
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    /** Every photo of the product, main one first, as paths under public/. */
+    public function gallery(): array
+    {
+        return array_values(array_filter([$this->image, ...$this->images->pluck('path')]));
+    }
+
     // Optional: final price accessor
     public function getFinalPriceAttribute()
     {

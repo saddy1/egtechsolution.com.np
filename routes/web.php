@@ -88,6 +88,7 @@ Route::middleware(['admin'])->group(function () {
     Route::get('/admin/products/{product}/edit', [ProductsController::class, 'edit'])->name('product.edit');
     Route::put('/admin/products/update/{product}', [ProductsController::class, 'update'])->name('product.update');
     Route::delete('/admin/products/{id}', [ProductsController::class, 'destroy'])->name('product.destroy');
+    Route::delete('/admin/products/{product}/images/{image}', [ProductsController::class, 'destroyImage'])->name('product.image.destroy');
 
 
     Route::get('/admin/banners', [BannerController::class, 'index'])->name('banner.index');

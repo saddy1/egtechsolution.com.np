@@ -175,6 +175,14 @@
             </div>
           </div>
 
+          <div>
+            <label class="mb-1 block text-sm font-medium">More Photos (gallery)</label>
+            <input type="file" name="gallery[]" accept="image/jpeg,image/png,image/webp" multiple class="block w-full text-sm text-gray-900">
+            <p class="mt-1 text-xs text-gray-500">Select several at once: other angles, ports, box contents. Up to 10, 5 MB each. They are added to the photos below.</p>
+            @error('gallery') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+            @error('gallery.*') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+          </div>
+
           <div class="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
             <a href="{{ route('product.index') }}" class="rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-semibold text-gray-800 ring-1 ring-gray-200 hover:bg-gray-200">
               Cancel
@@ -184,6 +192,23 @@
             </button>
           </div>
         </form>
+
+        @if($product->images->count())
+        <div class="mt-8 border-t border-gray-200 pt-6">
+          <h2 class="mb-3 text-sm font-semibold text-gray-800">Gallery photos</h2>
+          <div class="flex flex-wrap gap-4">
+            @foreach($product->images as $image)
+            <div class="text-center">
+              <img src="{{ asset($image->path) }}" alt="" class="h-24 w-24 rounded object-cover ring-1 ring-gray-200">
+              <form action="{{ route('product.image.destroy', [$product, $image]) }}" method="POST" onsubmit="return confirm('Remove this photo?')">
+                @csrf @method('DELETE')
+                <button type="submit" class="mt-1 text-xs font-medium text-red-600 hover:text-red-800">Remove</button>
+              </form>
+            </div>
+            @endforeach
+          </div>
+        </div>
+        @endif
       </div>
     </div>
   </div>
