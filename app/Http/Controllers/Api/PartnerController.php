@@ -42,6 +42,8 @@ class PartnerController extends Controller
                 'images'         => array_map(fn ($path) => asset($path), $p->gallery()),
                 'specifications' => $p->specifications->pluck('value', 'name'),
                 'is_featured'    => $p->is_featured,
+                'variant_group'  => $p->variant_group_id,
+                'variant_options' => $p->variant_options,
                 'url'            => url('/products/'.$p->slug.'/'.$p->id),
                 'updated_at'     => $p->updated_at?->toAtomString(),
             ]),

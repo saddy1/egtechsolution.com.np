@@ -90,9 +90,9 @@ class FrontendController extends Controller
         }
 
         // ----- No filters -> render homepage/index as usual -----
-        $products = Product::with(['brand:id,name', 'category:id,name'])->latest()->get();
-        $Randproducts = Product::inRandomOrder()->limit(16)->get();
-        $featuredProducts = Product::where('is_featured', true)->where('is_active', true)->latest()->take(8)->get();
+        $products = Product::with(['brand:id,name', 'category:id,name'])->listed()->latest()->get();
+        $Randproducts = Product::listed()->inRandomOrder()->limit(16)->get();
+        $featuredProducts = Product::listed()->where('is_featured', true)->where('is_active', true)->latest()->take(8)->get();
 
         // SEO
         $meta_title = "Buy Electronics, Gadgets, and More | EG Tech Solution | Best Prices in Nepal | Best Deals | Best Offers | Best Computer Shop | Best Electronics Store | Budget Friendly";
@@ -194,6 +194,10 @@ class FrontendController extends Controller
             ->where('is_active', true)
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
+            // Its own variants are offered as option buttons, not as "related".
+            ->when($product->variant_group_id, fn ($q) => $q->where(fn ($q) => $q
+                ->whereNull('variant_group_id')->orWhere('variant_group_id', '!=', $product->variant_group_id)))
+            ->listed()
             ->inRandomOrder()
             ->take(4)
             ->get();
@@ -203,8 +207,11 @@ class FrontendController extends Controller
         $meta_description = $product->meta_description ?: str($product->description)->limit(155);
         $meta_keywords = $product->keywords ?: implode(',', [$product->name, $product->brand->name ?? '', $product->category->name ?? '']);
 
+        $variantChoices = $product->variantChoices();
+
         return view('frontend.show', compact(
             'product',
+            'variantChoices',
             'related',
             'maxPerOrder',
             'meta_title',
@@ -214,11 +221,8 @@ class FrontendController extends Controller
     }
     public function shop()
     {
-        $products = Product::orderBy('created_at', 'desc')->get();
-        $Randproducts = Product::inRandomOrder()->limit(8)->get();
-        $brand = Product::distinct('brand')->pluck('brand');
-        $banner = Banner::orderBy('created_at', 'desc')->get();
-        $category = Product::distinct('category')->pluck('category');
-        return view('frontend.shop', compact('Randproducts', 'products', 'brand', 'category'));
+        // The old shop template was built for columns that no longer exist and crashed.
+        // Send visitors to the working product listing (all products, with the filter sidebar).
+        return redirect()->route('home', ['max_price' => (int) Product::max('price')]);
     }
 }

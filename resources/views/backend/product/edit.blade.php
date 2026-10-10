@@ -175,6 +175,32 @@
             </div>
           </div>
 
+          <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+            <h2 class="text-sm font-semibold text-gray-800">Variants (same model, different RAM / storage / colour)</h2>
+            <p class="mt-1 text-xs text-gray-500">Each variant is its own product with its own price, stock and SKU. Products sharing a group name are shown as option buttons on each other's page. Leave both fields empty for a product with no variants.</p>
+            <div class="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label class="mb-1 block text-sm font-medium">Variant group name</label>
+                <input type="text" name="variant_group" list="variant-groups" value="{{ old('variant_group', $product->variantGroup?->name) }}"
+                       placeholder="e.g. Dell Inspiron 14 7440"
+                       class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500">
+                <datalist id="variant-groups">
+                  @foreach(\App\Models\VariantGroup::orderBy('name')->pluck('name') as $groupName)
+                  <option value="{{ $groupName }}"></option>
+                  @endforeach
+                </datalist>
+                @error('variant_group') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium">This product's options (one per line)</label>
+                <textarea name="variant_options" rows="3" placeholder="RAM: 12GB&#10;Storage: 512GB SSD&#10;Colour: Silver"
+                          class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-mono focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500">{{ old('variant_options', collect($product->variant_options ?? [])->map(fn ($v, $k) => "$k: $v")->implode("\n")) }}</textarea>
+                <p class="mt-1 text-xs text-gray-500">Use the same option names on every variant in the group.</p>
+                @error('variant_options') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+              </div>
+            </div>
+          </div>
+
           <div>
             <label class="mb-1 block text-sm font-medium">More Photos (gallery)</label>
             <input type="file" name="gallery[]" accept="image/jpeg,image/png,image/webp" multiple class="block w-full text-sm text-gray-900">
@@ -192,6 +218,45 @@
             </button>
           </div>
         </form>
+
+        <div class="mt-8 border-t border-gray-200 pt-6">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h2 class="text-sm font-semibold text-gray-800">Variants of this product</h2>
+            <form action="{{ route('product.variant.create', $product) }}" method="POST"
+                  onsubmit="return confirm('Create a new variant copied from this product? Save any unsaved changes above first.')">
+              @csrf
+              <button type="submit" class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">+ Add a variant (copy this product)</button>
+            </form>
+          </div>
+          @php $siblings = $product->variant_group_id ? \App\Models\Product::where('variant_group_id', $product->variant_group_id)->orderBy('id')->get() : collect(); @endphp
+          @if($siblings->count() > 1)
+          <div class="mt-3 overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="text-xs uppercase text-gray-500"><tr><th class="py-2 pr-4">Product</th><th class="py-2 pr-4">Options</th><th class="py-2 pr-4">Price</th><th class="py-2 pr-4">Stock</th><th class="py-2">Status</th></tr></thead>
+              <tbody class="divide-y divide-gray-100">
+                @foreach($siblings as $sibling)
+                <tr>
+                  <td class="py-2 pr-4">
+                    @if($sibling->id === $product->id)
+                      <span class="font-semibold text-gray-900">{{ $sibling->name }}</span> <span class="text-xs text-gray-500">(this one)</span>
+                    @else
+                      <a href="{{ route('product.edit', $sibling) }}" class="font-medium text-indigo-600 hover:underline">{{ $sibling->name }}</a>
+                    @endif
+                    <div class="text-xs text-gray-500">{{ $sibling->sku }}</div>
+                  </td>
+                  <td class="py-2 pr-4 text-gray-700">{{ collect($sibling->variant_options ?? [])->map(fn ($v, $k) => "$k: $v")->implode(' · ') ?: '— not set —' }}</td>
+                  <td class="py-2 pr-4">Rs. {{ number_format($sibling->final_price, 0) }}</td>
+                  <td class="py-2 pr-4">{{ $sibling->quantity }}</td>
+                  <td class="py-2">{{ $sibling->is_active ? 'Active' : 'Hidden' }}</td>
+                </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
+          @else
+          <p class="mt-2 text-xs text-gray-500">No other variants yet.</p>
+          @endif
+        </div>
 
         @if($product->images->count())
         <div class="mt-8 border-t border-gray-200 pt-6">

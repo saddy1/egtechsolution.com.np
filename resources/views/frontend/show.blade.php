@@ -68,6 +68,37 @@
                         </p>
                     </div>
 
+                    {{-- Options: each choice is its own product with its own price and stock --}}
+                    @foreach ($variantChoices as $optionName => $options)
+                        <div>
+                            <p class="mb-2 text-xs sm:text-sm text-gray-600">
+                                {{ $optionName }}:
+                                <span class="font-semibold text-gray-900">{{ $product->variant_options[$optionName] ?? '' }}</span>
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach ($options as $option)
+                                    @php
+                                        $isColour = in_array(strtolower($optionName), ['color', 'colour']);
+                                        $state = $option['current']
+                                            ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
+                                            : ($option['exact']
+                                                ? 'border-gray-300 bg-white text-gray-800 hover:border-gray-500'
+                                                : 'border-dashed border-gray-300 bg-white text-gray-500 hover:border-gray-500');
+                                    @endphp
+                                    <a href="{{ url('/products/'.$option['product']->slug.'/'.$option['product']->id) }}"
+                                        @if ($option['current']) aria-current="true" @endif
+                                        title="{{ $option['product']->name }} — Rs. {{ number_format($option['product']->final_price, 0) }}{{ $option['in_stock'] ? '' : ' (out of stock)' }}"
+                                        class="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs sm:text-sm font-medium transition {{ $state }} {{ $option['in_stock'] ? '' : 'opacity-50 line-through' }}">
+                                        @if ($isColour && $option['product']->image)
+                                            <img src="{{ asset($option['product']->image) }}" alt="" class="h-7 w-7 rounded object-contain" loading="lazy">
+                                        @endif
+                                        {{ $option['value'] }}
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+
                     {{-- Share (compact) --}}
                     <div class="rounded-xl border border-gray-200 bg-white p-3">
                         <div class="flex items-center justify-between">
