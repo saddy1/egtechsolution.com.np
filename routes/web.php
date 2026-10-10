@@ -27,7 +27,7 @@ Route::get('/about',  [PageController::class, 'about'])->name('about');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 
 // Contact form submit
-Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
+Route::post('/contact', [ContactController::class, 'send'])->middleware(['spam', 'throttle:5,10'])->name('contact.send');
 
 
 // Show the form to request a password reset link
@@ -49,7 +49,7 @@ Route::post("auth", [GoogleAuthController::class, 'auth']);
 // Frontend Section
 
 Route::get('customer', [GoogleAuthController::class, 'signup'])->name('customer.store');
-Route::post('customer', [GoogleAuthController::class, 'store'])->name('customer.store');
+Route::post('customer', [GoogleAuthController::class, 'store'])->middleware(['spam', 'throttle:5,10'])->name('customer.store');
 Route::get("/admin/orderlist", [AdminController::class, 'orderlist']);
 Route::get("/products/{name}/{id}", [FrontendController::class, 'show']);
 Route::get("show/products", [FrontendController::class, 'index'])->name('products.index');

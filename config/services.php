@@ -54,4 +54,10 @@ return [
         'token' => env('PARTNER_API_TOKEN'),
     ],
 
+    // Optional Cloudflare Turnstile "I am human" check on public forms. Leave empty to turn it off.
+    'turnstile' => [
+        'key'    => env('TURNSTILE_SITE_KEY'),
+        'secret' => env('TURNSTILE_SECRET_KEY'),
+    ],
+
 ];

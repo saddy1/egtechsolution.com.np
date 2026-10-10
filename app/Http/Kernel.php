@@ -69,6 +69,7 @@ class Kernel extends HttpKernel
     ];
 
     protected $routeMiddleware = [
+        'spam' => \App\Http\Middleware\BlockSpam::class,
         'admin' => \App\Http\Middleware\AdminAuth::class,
         'partner' => \App\Http\Middleware\PartnerToken::class,
 

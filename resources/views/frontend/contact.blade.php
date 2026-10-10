@@ -31,6 +31,7 @@
 
           <form method="POST" action="{{ route('contact.send') }}" class="space-y-4">
             @csrf
+            <x-spam-guard />
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label class="text-xs font-semibold text-slate-700">Name</label>

@@ -19,6 +19,7 @@
 
             <form action="{{ route('customer.store') }}" method="post" enctype="multipart/form-data" class="space-y-4">
                 @csrf
+                <x-spam-guard />
 
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
