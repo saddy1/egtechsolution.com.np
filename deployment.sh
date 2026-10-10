@@ -51,7 +51,19 @@ trap 'echo; artisan up || true' EXIT
 # ── Code ──────────────────────────────────────────────────────────────────
 if [ -d .git ]; then
     step "Pulling the latest code"
+    BEFORE="$(cksum < "$0")"
+    git fetch --quiet
+    # When the built CSS/JS is kept in git, a copy built on this server would block the pull. Git's copy wins.
+    if git cat-file -e '@{u}:public/build/manifest.json' 2>/dev/null; then
+        git checkout --quiet -- public/build 2>/dev/null || true
+        git clean -fdq public/build
+    fi
     git pull --ff-only
+    # If the pull brought a newer version of this script, start over with it.
+    if [ "$BEFORE" != "$(cksum < "$0")" ] && [ -z "${DEPLOY_RESTARTED:-}" ]; then
+        trap - EXIT
+        DEPLOY_RESTARTED=1 exec bash "$0" "$@"
+    fi
 else
     step "Not a git checkout — using the files already uploaded"
 fi
@@ -76,7 +88,9 @@ artisan package:discover
 
 # ── CSS / JS ──────────────────────────────────────────────────────────────
 step "Building CSS and JavaScript"
-if command -v npm >/dev/null 2>&1; then
+if [ -d .git ] && [ -n "$(git ls-files public/build/manifest.json)" ]; then
+    echo "  Using the build that came with the code from git."
+elif command -v npm >/dev/null 2>&1; then
     npm ci --no-audit --no-fund
     npm run build
 elif [ -f public/build/manifest.json ]; then
