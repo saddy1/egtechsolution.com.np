@@ -82,49 +82,31 @@ class Product extends Model
     }
 
     /**
-     * The option buttons for the product page.
+     * The variant cards for the product page: every active variant of this
+     * model (this one included), smallest first.
      *
-     * @return array<string, array<int, array{value: string, product: Product, current: bool, exact: bool, in_stock: bool}>>
-     *         option name => choices; "product" is where that choice leads, "exact" is false when
-     *         picking it also changes another option because that combination is not sold.
+     * @return \Illuminate\Support\Collection<int, array{product: Product, label: string, current: bool, in_stock: bool}>
      */
-    public function variantChoices(): array
+    public function variantCards()
     {
         $variants = $this->variants()->filter(fn (Product $p) => ! empty($p->variant_options));
-        $mine     = $this->variant_options ?? [];
 
-        if ($variants->count() < 2 || ! $mine) {
-            return [];
+        if ($variants->count() < 2 || empty($this->variant_options)) {
+            return collect();
         }
 
-        $choices = [];
-        $names   = $variants->flatMap(fn (Product $p) => array_keys($p->variant_options))->unique();
-
-        foreach ($names as $name) {
-            $values = $variants->map(fn (Product $p) => $p->variant_options[$name] ?? null)->filter()->unique()
-                ->sort(fn ($a, $b) => self::optionRank($a) <=> self::optionRank($b) ?: strnatcasecmp($a, $b));
-
-            foreach ($values as $value) {
-                // Prefer the variant that keeps the customer's other choices, then the cheapest.
-                $target = $variants
-                    ->filter(fn (Product $p) => ($p->variant_options[$name] ?? null) === $value)
-                    ->sortBy(fn (Product $p) => [
-                        -count(array_intersect_assoc(array_diff_key($p->variant_options, [$name => 1]), $mine)),
-                        (float) $p->final_price,
-                    ])->first();
-
-                $choices[$name][] = [
-                    'value'    => $value,
-                    'product'  => $target,
-                    'current'  => ($mine[$name] ?? null) === $value,
-                    'exact'    => array_diff_key($target->variant_options, [$name => 1]) == array_diff_key($mine, [$name => 1]),
-                    'in_stock' => $target->stock_status === 'in_stock' && $target->quantity > 0,
-                ];
-            }
-        }
-
-        // An option with a single value is not a choice.
-        return array_filter($choices, fn ($options) => count($options) > 1);
+        return $variants
+            ->sortBy(fn (Product $p) => [
+                self::sizeRank($p->variant_options['RAM'] ?? ''),
+                self::sizeRank($p->variant_options['Storage'] ?? ''),
+                (float) $p->final_price,
+            ])
+            ->map(fn (Product $p) => [
+                'product'  => $p,
+                'label'    => implode(' + ', $p->variant_options),
+                'current'  => $p->id === $this->id,
+                'in_stock' => $p->stock_status === 'in_stock' && $p->quantity > 0,
+            ])->values();
     }
 
     /**
@@ -156,8 +138,8 @@ class Product extends Model
         return [$title ?: $name, array_values(array_filter(array_map('trim', explode('|', $features))))];
     }
 
-    /** Sort key that puts sizes in real order (512GB before 1TB); other values sort alphabetically. */
-    private static function optionRank(string $value): float
+    /** Sort key that puts sizes in real order (512GB before 1TB); anything else counts as 0. */
+    private static function sizeRank(string $value): float
     {
         return preg_match('/^\s*(\d+(?:\.\d+)?)\s*(MB|GB|TB)\b/i', $value, $m)
             ? (float) $m[1] * ['MB' => 1, 'GB' => 1024, 'TB' => 1024 * 1024][strtoupper($m[2])]

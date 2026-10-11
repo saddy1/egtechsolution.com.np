@@ -21,6 +21,7 @@
                 </ol>
             </nav>
 
+            <div id="product-page" data-max-qty="{{ $maxPerOrder }}" data-title="{{ $meta_title }}">
             @php
                 [$title, $features] = $product->titleParts();
                 $specs    = $product->specifications;
@@ -84,36 +85,31 @@
                     </div>
 
                     <div class="mt-5 space-y-5">
-                    {{-- Options: each choice is its own product with its own price and stock --}}
-                    @foreach ($variantChoices as $optionName => $options)
+                    {{-- Variants: each card is its own product; choosing one swaps the page in place --}}
+                    @if ($variantCards->count())
                         <div>
-                            <p class="mb-2 text-xs sm:text-sm text-gray-600">
-                                {{ $optionName }}:
-                                <span class="font-semibold text-gray-900">{{ $product->variant_options[$optionName] ?? '' }}</span>
+                            <p class="mb-2 text-sm text-gray-600">
+                                Variant: <span class="font-semibold text-gray-900">{{ $variantCards->firstWhere('current', true)['label'] ?? '' }}</span>
                             </p>
-                            <div class="flex flex-wrap gap-2">
-                                @foreach ($options as $option)
-                                    @php
-                                        $isColour = in_array(strtolower($optionName), ['color', 'colour']);
-                                        $state = $option['current']
-                                            ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
-                                            : ($option['exact']
-                                                ? 'border-gray-300 bg-white text-gray-800 hover:border-gray-500'
-                                                : 'border-dashed border-gray-300 bg-white text-gray-500 hover:border-gray-500');
-                                    @endphp
-                                    <a href="{{ url('/products/'.$option['product']->slug.'/'.$option['product']->id) }}"
-                                        @if ($option['current']) aria-current="true" @endif
-                                        title="{{ $option['product']->name }} — Rs. {{ number_format($option['product']->final_price, 0) }}{{ $option['in_stock'] ? '' : ' (out of stock)' }}"
-                                        class="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs sm:text-sm font-medium transition {{ $state }} {{ $option['in_stock'] ? '' : 'opacity-50 line-through' }}">
-                                        @if ($isColour && $option['product']->image)
-                                            <img src="{{ asset($option['product']->image) }}" alt="" class="h-7 w-7 rounded object-contain" loading="lazy">
+                            <div class="flex flex-wrap gap-3">
+                                @foreach ($variantCards as $card)
+                                    @php $v = $card['product']; @endphp
+                                    <a href="{{ url('/products/'.$v->slug.'/'.$v->id) }}" data-variant-link
+                                        @if ($card['current']) aria-current="true" @endif
+                                        class="block min-w-[8.5rem] rounded-xl border-2 px-3.5 py-2.5 transition
+                                            {{ $card['current'] ? 'border-blue-700 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-400' }}">
+                                        <span class="block border-b border-gray-200 pb-1.5 text-sm {{ $card['current'] ? 'font-bold text-gray-900' : 'font-medium text-gray-800' }}">{{ $card['label'] }}</span>
+                                        @if ($card['in_stock'])
+                                            <span class="mt-1.5 block text-sm font-bold text-gray-900">Rs. {{ number_format($v->final_price, 0) }}</span>
+                                            <span class="block text-xs {{ $v->quantity <= 5 ? 'text-rose-600' : 'text-emerald-600' }}">{{ $v->quantity <= 5 ? $v->quantity.' left' : 'In stock' }}</span>
+                                        @else
+                                            <span class="mt-1.5 block text-sm text-rose-600">Out of stock</span>
                                         @endif
-                                        {{ $option['value'] }}
                                     </a>
                                 @endforeach
                             </div>
                         </div>
-                    @endforeach
+                    @endif
                     </div>
 
                     {{-- Success flash --}}
@@ -241,6 +237,8 @@
                 </div>
             @endif
 
+            </div>{{-- /#product-page --}}
+
             {{-- You may also like --}}
             <section class="mt-10">
                 <div class="mb-4 flex items-center justify-between">
@@ -292,25 +290,54 @@
         </div>
     </section>
 
-    {{-- Quantity JS (respect stock cap) --}}
     <script>
-        const MAX_QTY = {{ $maxPerOrder }};
-
+        // Quantity stepper (respects the stock cap of the variant on screen)
         function updateQuantity(change) {
+            const page = document.getElementById('product-page');
             const qInput = document.getElementById('quantity');
-            const formQ = document.getElementById('form-quantity');
-            const dec = document.getElementById('decrease-btn');
-            const inc = document.getElementById('increase-btn');
+            if (!qInput) return;
 
-            let q = parseInt(qInput.value || '1', 10);
-            q = Math.min(MAX_QTY, Math.max(1, q + change));
+            const max = parseInt(page.dataset.maxQty || '1', 10);
+            const formQ = document.getElementById('form-quantity');
+            const q = Math.min(max, Math.max(1, parseInt(qInput.value || '1', 10) + change));
 
             qInput.value = q;
             if (formQ) formQ.value = q;
-
-            dec.disabled = q <= 1;
-            inc.disabled = q >= MAX_QTY;
+            document.getElementById('decrease-btn').disabled = q <= 1;
+            document.getElementById('increase-btn').disabled = q >= max;
         }
+
+        // Choosing a variant loads that variant's page in the background and swaps
+        // it in, so price, stock, photos and the cart button change without a reload.
+        document.addEventListener('click', function (e) {
+            const link = e.target.closest('[data-variant-link]');
+            if (!link || e.metaKey || e.ctrlKey || e.shiftKey) return;
+            e.preventDefault();
+            if (link.getAttribute('aria-current') === 'true') return;
+
+            const page = document.getElementById('product-page');
+            page.style.opacity = '0.5';
+
+            fetch(link.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+                .then(function (html) {
+                    const next = new DOMParser().parseFromString(html, 'text/html').getElementById('product-page');
+                    if (!next) throw new Error('no product');
+
+                    page.innerHTML = next.innerHTML;
+                    page.dataset.maxQty = next.dataset.maxQty;
+                    document.title = next.dataset.title;
+                    history.pushState({}, '', link.href);
+                    page.style.opacity = '';
+                    updateQuantity(0);
+                    if (window.initProductGalleries) window.initProductGalleries();
+                })
+                // Anything unexpected: fall back to opening the variant's page normally.
+                .catch(function () { window.location.href = link.href; });
+        });
+
+        // Back / forward buttons after switching variants.
+        window.addEventListener('popstate', function () { window.location.reload(); });
         document.addEventListener('DOMContentLoaded', () => updateQuantity(0));
     </script>
 @endsection

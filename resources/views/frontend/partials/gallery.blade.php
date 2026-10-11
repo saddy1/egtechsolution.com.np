@@ -72,8 +72,10 @@
     }
 </style>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('[data-gallery]').forEach(function (root) {
+// Sets up every gallery on the page that is not set up yet (also called after a variant swap).
+window.initProductGalleries = function () {
+    document.querySelectorAll('[data-gallery]:not([data-gallery-ready])').forEach(function (root) {
+        root.setAttribute('data-gallery-ready', '');
         var stage    = root.querySelector('[data-gallery-stage]');
         var photos   = Array.prototype.slice.call(root.querySelectorAll('[data-gallery-photo]'));
         var thumbs   = Array.prototype.slice.call(root.querySelectorAll('[data-gallery-thumb]'));
@@ -156,12 +158,13 @@ document.addEventListener('DOMContentLoaded', function () {
         lightbox.addEventListener('click', close);
 
         document.addEventListener('keydown', function (e) {
-            if (lightbox.hidden) return;
+            if (lightbox.hidden || !document.body.contains(root)) return;
             if (e.key === 'Escape') close();
             if (e.key === 'ArrowRight') show(current + 1);
             if (e.key === 'ArrowLeft') show(current - 1);
         });
     });
-});
+};
+document.addEventListener('DOMContentLoaded', window.initProductGalleries);
 </script>
 @endonce

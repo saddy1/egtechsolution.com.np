@@ -219,11 +219,11 @@ class FrontendController extends Controller
         $meta_description = $product->meta_description ?: str($product->description)->limit(155);
         $meta_keywords = $product->keywords ?: implode(',', [$product->name, $product->brand->name ?? '', $product->category->name ?? '']);
 
-        $variantChoices = $product->variantChoices();
+        $variantCards = $product->variantCards();
 
         return view('frontend.show', compact(
             'product',
-            'variantChoices',
+            'variantCards',
             'related',
             'maxPerOrder',
             'meta_title',
