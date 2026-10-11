@@ -40,10 +40,10 @@
       <div class="border-t border-gray-700">
           <p class="text-center text-gray-100 text-sm py-4">
               ©️ 2022 EG TECH SOLUTION. All Rights Reserved. |
-              Designed by
-              <a href="https://sadanandpaneru.com.np" target="_blank"
+              Designed and developed by
+              <a href="https://broadtechinfosys.com.np" target="_blank" rel="noopener"
                   class="text-blue-400 hover:text-blue-500 transition-colors">
-                  <i class="fas fa-code mr-1"></i> Sadanand Paneru
+                  <i class="fas fa-code mr-1"></i> Broad Tech Infosys Pvt. Ltd.
               </a>
           </p>
       </div>
