@@ -127,6 +127,35 @@ class Product extends Model
         return array_filter($choices, fn ($options) => count($options) > 1);
     }
 
+    /**
+     * Split a long listing name into a short title and its feature list, e.g.
+     * "Acer Swift Neo 14 (Core Ultra 5 | 16GB RAM | Silver)" => ["Acer Swift Neo 14", ["Core Ultra 5", "16GB RAM", "Silver"]].
+     *
+     * @return array{0: string, 1: string[]}
+     */
+    public function titleParts(): array
+    {
+        $name = trim($this->name);
+
+        // Drop an automatic "(16GB / 1TB SSD)" variant suffix: the option buttons already say it.
+        if (preg_match('/^(.*\|.*\))\s*\([^()|]*\)$/u', $name, $m)) {
+            $name = $m[1];
+        }
+
+        $open = strpos($name, '(');
+        $bar  = strpos($name, '|');
+
+        if ($open !== false && $bar !== false && $open < $bar && str_ends_with($name, ')')) {
+            // "Model (feature | feature | ...)": the title is what stands before the bracket.
+            [$title, $features] = [trim(substr($name, 0, $open)), substr($name, $open + 1, -1)];
+        } else {
+            $parts = explode('|', $name, 2);
+            [$title, $features] = [trim($parts[0]), $parts[1] ?? ''];
+        }
+
+        return [$title ?: $name, array_values(array_filter(array_map('trim', explode('|', $features))))];
+    }
+
     /** Sort key that puts sizes in real order (512GB before 1TB); other values sort alphabetically. */
     private static function optionRank(string $value): float
     {
