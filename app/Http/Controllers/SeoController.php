@@ -14,7 +14,11 @@ class SeoController extends Controller
             ['loc' => route('home'), 'priority' => '1.0'],
             ['loc' => route('about'), 'priority' => '0.6'],
             ['loc' => route('contact'), 'priority' => '0.7'],
+            ['loc' => route('shop'), 'priority' => '0.9'],
+            ['loc' => route('blog.index'), 'priority' => '0.7'],
         ];
+
+        $posts = \App\Models\Post::published()->latest('published_at')->get(['slug', 'updated_at']);
 
         $products = Product::query()
             ->where('is_active', true)
@@ -23,7 +27,7 @@ class SeoController extends Controller
             ->get(['id', 'slug', 'updated_at']);
 
         return response()
-            ->view('seo.sitemap', compact('pages', 'products'))
+            ->view('seo.sitemap', compact('pages', 'products', 'posts'))
             ->header('Content-Type', 'application/xml; charset=UTF-8');
     }
 

@@ -11,6 +11,7 @@
               <ul class="space-y-2 text-white text-sm">
                   <li><a href="{{ route('home') }}" class="hover:text-blue-400">Home</a></li>
                   <li><a href="{{ route('shop') }}" class="hover:text-blue-400">Shop</a></li>
+                  <li><a href="{{ route('blog.index') }}" class="hover:text-blue-400">Blog</a></li>
                   <li><a href="{{ route('about') }}" class="hover:text-blue-400">About Us</a></li>
                   <li><a href="{{ route('contact') }}" class="hover:text-blue-400">Contact</a></li>
               </ul>

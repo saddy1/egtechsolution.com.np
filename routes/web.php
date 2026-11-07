@@ -18,6 +18,11 @@ use App\Http\Controllers\BillingController;
 use App\Http\Controllers\CreditController;
 use App\Http\Controllers\DateConvertController;
 use App\Http\Controllers\SeoController;
+use App\Http\Controllers\BlogController;
+use App\Http\Controllers\BlogPostController;
+use App\Http\Controllers\PasswordCodeController;
+use App\Http\Controllers\AdminPasskeyController;
+use App\Http\Controllers\SettingsController;
 
 
 
@@ -26,6 +31,8 @@ use App\Http\Controllers\UserController;
 
 Route::get('/about',  [PageController::class, 'about'])->name('about');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
+Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [SeoController::class, 'robots'])->name('robots');
 
@@ -34,10 +41,13 @@ Route::post('/contact', [ContactController::class, 'send'])->middleware(['spam',
 
 
 // Show the form to request a password reset link
-Route::get('forgot-password', [UserController::class, 'showLinkRequestForm'])->name('password.request');
-Route::post('forgot-password', [UserController::class, 'sendResetLinkEmail'])->name('password.email');
-Route::get('reset-password/{token}', [UserController::class, 'showResetForm'])->name('password.reset');
-Route::post('reset-password', [UserController::class, 'resetPassword'])->name('password.update');
+// Customer "forgot password": emailed 6-digit code
+Route::get('forgot-password', [PasswordCodeController::class, 'request'])->name('password.request');
+Route::post('forgot-password', [PasswordCodeController::class, 'send'])->middleware('throttle:5,10')->name('password.email');
+Route::get('reset-password', [PasswordCodeController::class, 'form'])->name('password.reset.code');
+Route::post('reset-password', [PasswordCodeController::class, 'update'])->middleware('throttle:10,10')->name('password.update');
+// Old emailed links now lead to the code flow
+Route::get('reset-password/{token}', fn () => redirect()->route('password.request'))->name('password.reset');
 
 // Authentication routes
 Route::get('auth/google', [GoogleAuthController::class, 'redirect'])->name('google-auth');
@@ -79,7 +89,15 @@ Route::middleware(['auth'])->group(function () {
 
 #Backend Section
 Route::get("/admin", [AdminController::class, 'index']);
-Route::post("/admin", [AdminController::class, 'login'])->name('admin');
+Route::post("/admin", [AdminController::class, 'login'])->middleware('throttle:10,1')->name('admin');
+
+// Admin "forgot password" (6-digit code) and passkey login
+Route::get('/admin/forgot-password', [PasswordCodeController::class, 'request'])->name('admin.password.request');
+Route::post('/admin/forgot-password', [PasswordCodeController::class, 'send'])->middleware('throttle:5,10')->name('admin.password.email');
+Route::get('/admin/reset-password', [PasswordCodeController::class, 'form'])->name('admin.password.reset');
+Route::post('/admin/reset-password', [PasswordCodeController::class, 'update'])->middleware('throttle:10,10')->name('admin.password.update');
+Route::post('/admin/passkey/options', [AdminPasskeyController::class, 'loginOptions'])->middleware('throttle:20,1')->name('admin.passkey.options');
+Route::post('/admin/passkey/login', [AdminPasskeyController::class, 'login'])->middleware('throttle:10,1')->name('admin.passkey.login');
 Route::middleware(['admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::resource('brands', BrandController::class);
@@ -93,6 +111,27 @@ Route::middleware(['admin'])->group(function () {
     Route::delete('/admin/products/{id}', [ProductsController::class, 'destroy'])->name('product.destroy');
     Route::delete('/admin/products/{product}/images/{image}', [ProductsController::class, 'destroyImage'])->name('product.image.destroy');
 
+
+    // Blog: AI drafts are generated here by a logged-in admin, then reviewed and published
+    // Settings: email (SMTP), WhatsApp, passkeys
+    Route::get('/admin/settings', [SettingsController::class, 'index'])->name('admin.settings');
+    Route::post('/admin/settings/mail', [SettingsController::class, 'saveMail'])->name('admin.settings.mail');
+    Route::post('/admin/settings/mail/test', [SettingsController::class, 'testMail'])->middleware('throttle:10,10')->name('admin.settings.mail.test');
+    Route::post('/admin/settings/whatsapp', [SettingsController::class, 'saveWhatsApp'])->name('admin.settings.whatsapp');
+    Route::post('/admin/settings/whatsapp/test', [SettingsController::class, 'testWhatsApp'])->middleware('throttle:10,10')->name('admin.settings.whatsapp.test');
+    Route::post('/admin/passkeys/options', [AdminPasskeyController::class, 'registerOptions'])->name('admin.passkeys.options');
+    Route::post('/admin/passkeys', [AdminPasskeyController::class, 'register'])->name('admin.passkeys.store');
+    Route::delete('/admin/passkeys/{passkey}', [AdminPasskeyController::class, 'destroy'])->name('admin.passkeys.destroy');
+
+    Route::prefix('admin/blog')->name('admin.blog.')->group(function () {
+        Route::get('/', [BlogPostController::class, 'index'])->name('index');
+        Route::post('/generate', [BlogPostController::class, 'generate'])->middleware('throttle:10,60')->name('generate');
+        Route::get('/create', [BlogPostController::class, 'create'])->name('create');
+        Route::post('/', [BlogPostController::class, 'store'])->name('store');
+        Route::get('/{post}/edit', [BlogPostController::class, 'edit'])->name('edit');
+        Route::put('/{post}', [BlogPostController::class, 'update'])->name('update');
+        Route::delete('/{post}', [BlogPostController::class, 'destroy'])->name('destroy');
+    });
 
     Route::get('/admin/banners', [BannerController::class, 'index'])->name('banner.index');
     Route::get('/admin/banners/create', [BannerController::class, 'create'])->name('banner.create');

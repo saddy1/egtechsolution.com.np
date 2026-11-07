@@ -100,6 +100,12 @@
                 <li><a href=" {{ route('banner.index') }}"
                         class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
                         <i class="fas fa-star"></i><span>Banners</span></a></li>
+                <li><a href="{{ route('admin.blog.index') }}"
+                        class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
+                        <i class="fas fa-newspaper"></i><span>Blog</span></a></li>
+                <li><a href="{{ route('admin.settings') }}"
+                        class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
+                        <i class="fas fa-gear"></i><span>Settings</span></a></li>
                 <li><a href="{{ route('admin.orders.index') }}"
                         class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg">
                         <i class="fas fa-shopping-cart"></i><span>Orders</span></a></li>

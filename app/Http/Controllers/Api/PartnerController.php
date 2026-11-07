@@ -134,6 +134,8 @@ class PartnerController extends Controller
             Log::error('Admin email send failed', ['order_id' => $order->id, 'msg' => $e->getMessage()]);
         }
 
+        \App\Services\WhatsAppService::dispatchOrderAlerts($order->id);
+
         return $this->orderResponse($order, 201);
     }
 

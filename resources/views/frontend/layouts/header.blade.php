@@ -19,13 +19,13 @@
     <meta name="keywords" content="@yield('meta_keywords', 'computer shop Dhangadhi, laptop shop Dhangadhi, electronics Kailali')">
     <meta name="robots" content="{{ request()->query() ? 'noindex, follow' : 'index, follow' }}">
     <link rel="canonical" href="{{ url()->current() }}">
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="@yield('og_type', 'website')">
     <meta property="og:locale" content="en_NP">
     <meta property="og:site_name" content="EG Tech Solution">
     <meta property="og:title" content="@yield('title', 'EG Tech Solution | Computer Shop in Dhangadhi')">
     <meta property="og:description" content="@yield('meta_description', 'EG Tech Solution is a computer and electronics shop in Dhangadhi, Kailali, Nepal.')">
     <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:image" content="{{ asset('assets/eg_tech_logo.png') }}">
+    <meta property="og:image" content="@yield('og_image', asset('assets/eg_tech_logo.png'))">
     <meta name="twitter:card" content="summary_large_image">
     <script type="application/ld+json">{!! json_encode([
         '@context' => 'https://schema.org', '@type' => 'ComputerStore', 'name' => 'EG Tech Solution',
@@ -84,7 +84,12 @@
                                             Shop
                                         </a>
                                     </li>
-                                  
+                                    <li>
+                                        <a href="{{ route('blog.index') }}"
+                                            class="nav-link menu-title text-white hover:text-gray-50 font-medium py-2 px-3 rounded-lg hover:bg-white/20 transition-all duration-200">
+                                            Blog
+                                        </a>
+                                    </li>
                                     <li>
                                         <a href="{{route('about')}}"
                                             class="nav-link menu-title  text-white hover:text-gray-50 font-medium py-2 px-3 rounded-lg hover:bg-white/20 transition-all duration-200">
@@ -198,6 +203,8 @@
                     class="block py-3 px-4 text-gray-700 hover:bg-theme-green/20 hover:text-gray-900 rounded-lg font-medium transition-colors duration-150">Shop</a>
                 <a href="{{ route('shop') }}"
                     class="block py-3 px-4 text-gray-700 hover:bg-theme-green/20 hover:text-gray-900 rounded-lg font-medium transition-colors duration-150">Category</a>
+                <a href="{{ route('blog.index') }}"
+                    class="block py-3 px-4 text-gray-700 hover:bg-theme-green/20 hover:text-gray-900 rounded-lg font-medium transition-colors duration-150">Blog</a>
                 <a href="{{route('about')}}"
                     class="block py-3 px-4 text-gray-700 hover:bg-theme-green/20 hover:text-gray-900 rounded-lg font-medium transition-colors duration-150">About
                     Us</a>

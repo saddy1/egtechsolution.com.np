@@ -10,6 +10,10 @@
         <div class="bg-white shadow-lg rounded-lg p-6">
             <h3 class="text-center text-2xl font-semibold mb-6">Admin Login</h3>
 
+            @if (session('status'))
+                <div class="bg-green-100 text-green-800 p-3 mb-4 rounded text-center">{{ session('status') }}</div>
+            @endif
+
             @if (session('error'))
                 <div id="error-message" class="bg-red-100 text-red-700 p-3 mb-4 rounded text-center">
                     {{ session('error') }}
@@ -46,14 +50,44 @@
                 </div>
 
                 <p class="text-center mt-3 text-gray-600 text-sm">
-                    <a href="javascript:void(0)" class="text-red-600 hover:underline">Forgot your password?</a>
+                    <a href="{{ route('admin.password.request') }}" class="text-red-600 hover:underline">Forgot your password?</a>
                 </p>
             </form>
+
+            <div id="passkeyBox" class="mt-6 hidden">
+                <div class="flex items-center gap-3 text-xs uppercase tracking-wider text-gray-400">
+                    <span class="h-px flex-1 bg-gray-200"></span> or <span class="h-px flex-1 bg-gray-200"></span>
+                </div>
+                <button type="button" id="passkeyBtn"
+                    class="mt-4 w-full rounded border border-gray-300 bg-white px-4 py-2 font-semibold text-gray-800 hover:bg-gray-50 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-fingerprint"></i> <span>Sign in with a passkey</span>
+                </button>
+                <p id="passkeyError" class="mt-2 hidden text-center text-sm text-red-600"></p>
+            </div>
         </div>
     </div>
 </div>
 
+@include('backend.partials.passkey-js')
 <script>
+    (function () {
+        if (!EGPasskey.supported()) return;
+        const box = document.getElementById('passkeyBox'), btn = document.getElementById('passkeyBtn'), err = document.getElementById('passkeyError');
+        box.classList.remove('hidden');
+        btn.addEventListener('click', async () => {
+            err.classList.add('hidden');
+            btn.disabled = true;
+            try {
+                const res = await EGPasskey.login();
+                window.location = res.redirect;
+            } catch (e) {
+                err.textContent = e.message;
+                err.classList.remove('hidden');
+                btn.disabled = false;
+            }
+        });
+    })();
+
     document.getElementById('email').addEventListener('focus', function() {
         let errorDiv = document.getElementById('error-message');
         if(errorDiv) errorDiv.style.display = 'none';

@@ -10,6 +10,10 @@
         <div class="bg-white shadow-lg rounded-lg p-6">
             <h3 class="text-2xl font-semibold text-center mb-6">Login</h3>
 
+            @if (session('status'))
+                <div class="bg-green-100 text-green-800 text-center py-2 px-4 rounded mb-4">{{ session('status') }}</div>
+            @endif
+
             @if (session('error'))
                 <div class="bg-red-100 text-red-700 text-center py-2 px-4 rounded mb-4" id="error-message">
                     {{ session('error') }}

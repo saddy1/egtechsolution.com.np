@@ -397,6 +397,9 @@ class CartController extends Controller
                 ->withErrors(['checkout' => 'Failed to place order. Please try again.']);
         }
 
+        // WhatsApp alerts to shop + customer (sent after the page is returned)
+        \App\Services\WhatsAppService::dispatchOrderAlerts($order->id);
+
         // 5) Success page
         $cartItemsForView = collect($lines)->map(fn($ln) => [
             'name'     => $ln['product_name'],

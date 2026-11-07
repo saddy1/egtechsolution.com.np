@@ -45,6 +45,8 @@ return [
   'openai' => [
   'key' => env('OPENAI_API_KEY'),
   'model' => env('OPENAI_MODEL', 'gpt-4o-mini'),
+  // Model used to draft blog posts (Admin -> Blog -> Generate)
+  'blog_model' => env('OPENAI_BLOG_MODEL', env('OPENAI_MODEL', 'gpt-4o-mini')),
 ],
 
 

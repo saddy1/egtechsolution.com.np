@@ -18,6 +18,23 @@
     --color-theme-green: #c1d9d9;
 }
 
+/* ================= Blog article typography ================= */
+.prose-blog { color: #334155; font-size: 1.0625rem; line-height: 1.8; }
+.prose-blog h2 { margin: 2.25rem 0 .75rem; font-size: 1.5rem; font-weight: 700; line-height: 1.3; color: #0f172a; }
+.prose-blog h3 { margin: 1.75rem 0 .5rem; font-size: 1.2rem; font-weight: 600; color: #0f172a; }
+.prose-blog p { margin: 1rem 0; }
+.prose-blog ul, .prose-blog ol { margin: 1rem 0; padding-left: 1.5rem; }
+.prose-blog ul { list-style: disc; } .prose-blog ol { list-style: decimal; }
+.prose-blog li { margin: .35rem 0; }
+.prose-blog li::marker { color: var(--color-brand-orange); }
+.prose-blog a { color: var(--color-brand-navy); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+.prose-blog a:hover { color: var(--color-brand-orange); }
+.prose-blog strong { color: #0f172a; }
+.prose-blog blockquote { margin: 1.5rem 0; border-left: 4px solid var(--color-brand-orange); padding: .25rem 0 .25rem 1rem; color: #475569; font-style: italic; }
+.prose-blog table { display: block; width: 100%; overflow-x: auto; margin: 1.5rem 0; border-collapse: collapse; font-size: .95rem; }
+.prose-blog th, .prose-blog td { border: 1px solid #e2e8f0; padding: .6rem .8rem; text-align: left; }
+.prose-blog th { background: #f8fafc; font-weight: 600; color: #0f172a; }
+
 /* ================= Landing page motion ================= */
 
 /* Sections fade up as they scroll into view (JS adds .is-visible) */
