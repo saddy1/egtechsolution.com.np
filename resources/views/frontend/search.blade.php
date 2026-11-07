@@ -1,14 +1,19 @@
 @extends('frontend.layouts.app')
 
+@section('title', $meta_title)
+@section('meta_description', $meta_description)
+
 @section('content')
 <section class="w-full px-4 sm:px-6 lg:px-8 py-8">
 
   {{-- Header --}}
   <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-    <h1 class="text-xl font-bold text-slate-900">Search & Filters</h1>
+    <h1 class="text-xl font-bold text-slate-900">
+      {{ $search !== '' ? 'Results for "' . $search . '"' : (request()->routeIs('shop') ? 'All products' : 'Search & Filters') }}
+    </h1>
     @if(request()->hasAny(['search','category','max_price','brand']))
-      <a href="{{ route('home') }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700">
-        Clear all & Return Home
+      <a href="{{ route('shop') }}" class="text-sm font-semibold text-brand-navy hover:text-brand-orange">
+        Clear all filters
       </a>
     @endif
   </div>

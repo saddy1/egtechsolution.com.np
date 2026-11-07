@@ -4,6 +4,30 @@
 @section('meta_description', $meta_description)
 @section('meta_keywords', $meta_keywords)
 
+@push('structured_data')
+@php
+    $productSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Product',
+        'name' => $product->name,
+        'description' => trim(strip_tags((string) $product->description)),
+        'url' => url('/products/'.$product->slug.'/'.$product->id),
+        'image' => collect($product->gallery())->map(fn ($path) => asset($path))->values()->all(),
+        'sku' => $product->sku ?: (string) $product->id,
+        'brand' => $product->brand ? ['@type' => 'Brand', 'name' => $product->brand->name] : null,
+        'offers' => [
+            '@type' => 'Offer',
+            'priceCurrency' => 'NPR',
+            'price' => $product->final_price,
+            'availability' => $product->stock_status === 'in_stock' && $product->quantity > 0
+                ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            'url' => url('/products/'.$product->slug.'/'.$product->id),
+        ],
+    ];
+@endphp
+<script type="application/ld+json">{!! json_encode(array_filter($productSchema), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+@endpush
+
 @section('content')
     <section class="min-h-screen bg-white py-6 sm:py-10">
         <div class="mx-auto max-w-7xl px-4 sm:px-6">

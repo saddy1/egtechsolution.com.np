@@ -6,7 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const dots  = Array.from(root.querySelectorAll('[data-carousel-slide-to]'));
     const prev  = root.querySelector('[data-carousel-prev]');
     const next  = root.querySelector('[data-carousel-next]');
-    const autoplay = root.getAttribute('data-autoplay') !== 'false';
+    const autoplay = root.getAttribute('data-autoplay') !== 'false'
+      && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const intervalMs = parseInt(root.getAttribute('data-interval') || '1000', 10);
 
     if (!items.length) return;
@@ -29,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
       dots.forEach((d, k) => {
         const active = k === index;
         d.setAttribute('aria-current', active ? 'true' : 'false');
-        d.classList.toggle('bg-white/50', active);
+        d.classList.toggle('bg-white', active);
         d.classList.toggle('bg-white/30', !active);
       });
     }

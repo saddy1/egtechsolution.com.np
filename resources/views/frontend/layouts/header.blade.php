@@ -1,43 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-NP">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="manifest" href="{{ asset('manifest.json') }}">
-    <link rel="apple-touch-icon" href="{{ asset('') }}">
-    <link rel="icon" href="{{ asset('') }}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 
     <link rel="preconnect" href="https://fonts.gstatic.com">
 
-    @stack('head')
-    <title>@yield('title', 'Default Title')</title>
-<meta name="description" content="@yield('meta_description', 'Default description')">
-<meta name="keywords" content="@yield('meta_keywords', 'Default keywords')">
+    <title>@yield('title', 'EG Tech Solution | Computer Shop in Dhangadhi')</title>
+    <meta name="description" content="@yield('meta_description', 'EG Tech Solution is a computer and electronics shop in Dhangadhi, Kailali, Nepal.')">
+    <meta name="keywords" content="@yield('meta_keywords', 'computer shop Dhangadhi, laptop shop Dhangadhi, electronics Kailali')">
+    <meta name="robots" content="{{ request()->query() ? 'noindex, follow' : 'index, follow' }}">
+    <link rel="canonical" href="{{ url()->current() }}">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_NP">
+    <meta property="og:site_name" content="EG Tech Solution">
+    <meta property="og:title" content="@yield('title', 'EG Tech Solution | Computer Shop in Dhangadhi')">
+    <meta property="og:description" content="@yield('meta_description', 'EG Tech Solution is a computer and electronics shop in Dhangadhi, Kailali, Nepal.')">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="{{ asset('assets/eg_tech_logo.png') }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <script type="application/ld+json">{!! json_encode([
+        '@context' => 'https://schema.org', '@type' => 'ComputerStore', 'name' => 'EG Tech Solution',
+        'url' => url('/'), 'image' => asset('assets/eg_tech_logo.png'), 'telephone' => '+9779864830276',
+        'email' => 'egtechsolution1@gmail.com',
+        'address' => ['@type' => 'PostalAddress', 'addressLocality' => 'Dhangadhi', 'addressRegion' => 'Kailali', 'addressCountry' => 'NP'],
+        'areaServed' => ['@type' => 'City', 'name' => 'Dhangadhi'],
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    @stack('structured_data')
 
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'theme-green': '#C1D9D9',
-                        'theme-dark': '#011b08',
-                        'theme-orange': '#e87316'
-                    }
-                }
-            }
-        }
-    </script>
+    {{-- Brand colours live in resources/css/app.css (@theme); Tailwind v4 ignores inline tailwind.config. --}}
 </head>
 
-<body class="bg-gray-50 font-sans">
+<body class="bg-gray-50 font-sans pb-16 sm:pb-0">
     <header class="sticky top-0 z-50" id="home">
         <div class="bg-[rgb(0,46,91)] shadow-2xs">
             <div class="container mx-auto px-4 lg:px-6">
@@ -74,7 +79,7 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <a href="shop.html"
+                                        <a href="{{ route('shop') }}"
                                             class="nav-link menu-title text-white hover:text-gray-50 font-medium py-2 px-3 rounded-lg hover:bg-white/20 transition-all duration-200">
                                             Shop
                                         </a>
@@ -101,70 +106,48 @@
                     <div class="menu-right">
                         <ul class="flex items-center space-x-1 md:space-x-4">
                             <li>
-                                <div
-                                    class="search-box mx-3 bg-theme-orange p-2 rounded-lg cursor-pointer bg-white hover:bg-orange-600 transition-colors duration-200 mr-5">
-                                    <i data-feather="search"
-                                        class="w-2 h-2 sm:w-4 sm:h-4 md:w-5 md:h-5 lg:w-5 lg:h-5 text-black"></i>
-                                </div>
-
+                                <button type="button" aria-label="Search products"
+                                    class="search-box flex h-11 w-11 items-center justify-center rounded-lg bg-white text-brand-navy hover:bg-slate-100 transition-colors duration-200">
+                                    <i data-feather="search" class="w-5 h-5"></i>
+                                </button>
                             </li>
                             @if (Auth::check())
-                                <li class="onhover-dropdown wislist-dropdown relative group">
-                                    <div class="cart-media">
-                                        <a href="{{ route('cart.show', Auth::id()) }}"
-                                            class="flex items-center p-2 bg-white hover:bg-red-400/20 rounded-lg transition-colors duration-200">
-                                            <i data-feather="shopping-cart"
-                                                class="w-2 h-2 sm:w-4 sm:h-4 md:w-5 md:h-5 lg:w-6 lg:h-5 text-gray-800"></i>
-                                            <span id="cart-count"
-                                                class="absolute -top-1 -right-1 bg-theme-orange bg-red-600 text-white text-xs rounded-full w-3 h-3 sm:w-4 sm:h-4 md:w-4 md:h-4 lg:w-4 lg:h-4 flex items-center justify-center font-medium">
-                                                {{ $cartCount }}
-                                            </span>
-                                        </a>
-                                    </div>
+                                <li class="relative">
+                                    <a href="{{ route('cart.show') }}" aria-label="Cart ({{ $cartCount }} items)"
+                                        class="flex h-11 w-11 items-center justify-center rounded-lg bg-white text-brand-navy hover:bg-slate-100 transition-colors duration-200">
+                                        <i data-feather="shopping-cart" class="w-5 h-5"></i>
+                                    </a>
+                                    <span id="cart-count"
+                                        class="pointer-events-none absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-orange px-1 text-xs font-semibold text-white">
+                                        {{ $cartCount }}
+                                    </span>
                                 </li>
-                                <li class="onhover-dropdown relative group">
-                                    <div
-                                        class="cart-media name-usr bg-theme-dark text-white px-3 py-2 rounded-lg text-[8px] text-center sm:text-sm md:text-base lg:text-lg uppercase leading-tight ml-5 hover:bg-gray-800 transition-colors duration-200 cursor-pointer">
-                                        <i data-feather="user" class="w-4 h-4 inline mr-2"></i>{{ Auth::user()->name }}
-                                    </div>
-
-                                    <div
-                                        class="onhover-div profile-dropdown absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                                        <ul class="py-2">
-                                            <li class="border-b border-gray-200 last:border-b-0">
-                                                <a href="{{ route('logout') }}"
-                                                    class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors duration-150">
-                                                    Logout
-                                                </a>
-                                            </li>
-                                        </ul>
+                                <li class="relative" data-dropdown>
+                                    <button type="button" data-dropdown-toggle aria-expanded="false" aria-haspopup="true"
+                                        class="flex h-11 items-center gap-2 rounded-lg bg-white/10 px-3 text-sm font-medium text-white hover:bg-white/20 transition-colors duration-200">
+                                        <i data-feather="user" class="w-5 h-5"></i>
+                                        <span class="hidden max-w-[10rem] truncate sm:inline">{{ Auth::user()->name }}</span>
+                                    </button>
+                                    <div data-dropdown-menu
+                                        class="absolute right-0 mt-2 hidden w-56 rounded-lg border border-gray-200 bg-white py-2 shadow-xl z-50">
+                                        <a href="{{ route('cart.show') }}" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-50">My cart</a>
+                                        <a href="{{ route('logout') }}" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-red-600">Log out</a>
                                     </div>
                                 </li>
                             @else
-                                <li class="onhover-dropdown relative group">
-                                    <div
-                                        class="cart-media name-usr bg-theme-dark bg-white  text-black px-2 py-2 rounded-lg text-xs uppercase leading-tight ml-5 hover:bg-gray-200 transition-colors duration-200 cursor-pointer">
-                                        <i data-feather="user"
-                                            class=" w-2 h-2 sm:w-4 sm:h-4 md:w-5 md:h-5 lg:w-5 lg:h-5inline mr-2"></i>
-                                    </div>
-                                    <div
-                                        class="onhover-div profile-dropdown absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                                        <ul class="py-2">
-                                            <li class="border-b border-gray-200 last:border-b-0">
-                                                <a href="{{ url('login') }}"
-                                                    class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-150">
-                                                    Login
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
+                                <li>
+                                    <a href="{{ url('login') }}"
+                                        class="flex h-11 items-center gap-2 rounded-lg bg-white/10 px-3 text-sm font-medium text-white hover:bg-white/20 transition-colors duration-200">
+                                        <i data-feather="user" class="w-5 h-5"></i>
+                                        <span class="hidden sm:inline">Log in</span>
+                                    </a>
                                 </li>
                             @endif
 
                             <!-- Mobile Menu Button -->
                             <li class="lg:hidden">
-                                <button id="mobileMenuBtn"
-                                    class="p-2 text-white hover:bg-red-500 rounded-lg transition-colors duration-200">
+                                <button id="mobileMenuBtn" type="button" aria-label="Open menu"
+                                    class="flex h-11 w-11 items-center justify-center rounded-lg text-white hover:bg-white/15 transition-colors duration-200">
                                     <i data-feather="menu" class="w-6 h-6"></i>
                                 </button>
                             </li>
@@ -211,9 +194,9 @@
             <nav class="p-4 space-y-2">
                 <a href="/"
                     class="block py-3 px-4 text-gray-700 hover:bg-theme-green/20 hover:text-gray-900 rounded-lg font-medium transition-colors duration-150">Home</a>
-                <a href="shop.html"
+                <a href="{{ route('shop') }}"
                     class="block py-3 px-4 text-gray-700 hover:bg-theme-green/20 hover:text-gray-900 rounded-lg font-medium transition-colors duration-150">Shop</a>
-                <a href="shop.html"
+                <a href="{{ route('shop') }}"
                     class="block py-3 px-4 text-gray-700 hover:bg-theme-green/20 hover:text-gray-900 rounded-lg font-medium transition-colors duration-150">Category</a>
                 <a href="{{route('about')}}"
                     class="block py-3 px-4 text-gray-700 hover:bg-theme-green/20 hover:text-gray-900 rounded-lg font-medium transition-colors duration-150">About
@@ -227,45 +210,45 @@
 
     <!-- Mobile Bottom Menu -->
     <div class="mobile-menu fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 sm:hidden z-40">
-        <ul class="grid grid-cols-5 py-2">
+        @php
+            $bottomItem = 'flex flex-col items-center py-2 transition-colors duration-150';
+            $on  = 'text-brand-orange';
+            $off = 'text-gray-600 hover:text-brand-orange';
+        @endphp
+        <ul class="grid grid-cols-5 py-1">
             <li>
-                <a href="demo3.php" class="flex flex-col items-center py-2 text-theme-orange">
+                <a href="{{ route('home') }}" class="{{ $bottomItem }} {{ request()->routeIs('home') ? $on : $off }}">
                     <i data-feather="home" class="w-5 h-5"></i>
                     <span class="text-xs font-medium mt-1">Home</span>
                 </a>
             </li>
             <li>
-                <a href="javascript:void(0)"
-                    class="flex flex-col items-center py-2 text-gray-600 hover:text-theme-orange transition-colors duration-150">
-                    <i data-feather="align-justify" class="w-5 h-5"></i>
-                    <span class="text-xs font-medium mt-1">Category</span>
+                <a href="{{ route('shop') }}" class="{{ $bottomItem }} {{ request()->routeIs('shop') ? $on : $off }}">
+                    <i data-feather="grid" class="w-5 h-5"></i>
+                    <span class="text-xs font-medium mt-1">Shop</span>
                 </a>
             </li>
-            <li class="onhover-dropdown wislist-dropdown">
-                <div class="cart-media">
-                    <a href="{{ route('cart.show', Auth::id()) }}"
-                        class="flex flex-col items-center py-2 text-gray-600 hover:text-theme-orange transition-colors duration-150 relative">
-                        <i data-feather="shopping-cart" class="w-5 h-5"></i>
-                        <span class="text-xs font-medium mt-1">Cart</span>
-                        <span id="cart-count"
-                            class="absolute -top-1 right-3 bg-theme-orange text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium">
-                            {{-- {{ $cartCount }} --}}
+            <li>
+                <a href="{{ Auth::check() ? route('cart.show') : url('login') }}" class="{{ $bottomItem }} {{ $off }} relative">
+                    <i data-feather="shopping-cart" class="w-5 h-5"></i>
+                    <span class="text-xs font-medium mt-1">Cart</span>
+                    @if (Auth::check() && ($cartCount ?? 0) > 0)
+                        <span class="absolute -top-0.5 right-3 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-orange px-1 text-[10px] font-semibold text-white">
+                            {{ $cartCount }}
                         </span>
-                    </a>
-                </div>
-            </li>
-            <li>
-                <a href="javascript:void(0)"
-                    class="flex flex-col items-center py-2 text-gray-600 hover:text-theme-orange transition-colors duration-150">
-                    <i data-feather="heart" class="w-5 h-5"></i>
-                    <span class="text-xs font-medium mt-1">Wishlist</span>
+                    @endif
                 </a>
             </li>
             <li>
-                <a href="user-dashboard.php"
-                    class="flex flex-col items-center py-2 text-gray-600 hover:text-theme-orange transition-colors duration-150">
+                <a href="tel:+9779864830276" class="{{ $bottomItem }} {{ $off }}">
+                    <i data-feather="phone" class="w-5 h-5"></i>
+                    <span class="text-xs font-medium mt-1">Call</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ Auth::check() ? route('cart.show') : url('login') }}" class="{{ $bottomItem }} {{ $off }}">
                     <i data-feather="user" class="w-5 h-5"></i>
-                    <span class="text-xs font-medium mt-1">Account</span>
+                    <span class="text-xs font-medium mt-1">{{ Auth::check() ? 'Account' : 'Log in' }}</span>
                 </a>
             </li>
         </ul>
@@ -277,6 +260,16 @@
     <script>
         // Initialize Feather Icons
         feather.replace();
+
+        // Account menu: opens on click/tap and keyboard, closes on outside click or Escape
+        document.querySelectorAll('[data-dropdown]').forEach((wrap) => {
+            const btn = wrap.querySelector('[data-dropdown-toggle]');
+            const menu = wrap.querySelector('[data-dropdown-menu]');
+            const set = (open) => { menu.classList.toggle('hidden', !open); btn.setAttribute('aria-expanded', open); };
+            btn.addEventListener('click', (e) => { e.stopPropagation(); set(menu.classList.contains('hidden')); });
+            document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) set(false); });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { set(false); } });
+        });
 
         // Search functionality - maintaining original logic
         const searchBox = document.querySelector('.search-box');

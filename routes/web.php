@@ -17,6 +17,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\CreditController;
 use App\Http\Controllers\DateConvertController;
+use App\Http\Controllers\SeoController;
 
 
 
@@ -25,6 +26,8 @@ use App\Http\Controllers\UserController;
 
 Route::get('/about',  [PageController::class, 'about'])->name('about');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
+Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
+Route::get('/robots.txt', [SeoController::class, 'robots'])->name('robots');
 
 // Contact form submit
 Route::post('/contact', [ContactController::class, 'send'])->middleware(['spam', 'throttle:5,10'])->name('contact.send');
@@ -48,7 +51,7 @@ Route::post("auth", [GoogleAuthController::class, 'auth']);
 
 // Frontend Section
 
-Route::get('customer', [GoogleAuthController::class, 'signup'])->name('customer.store');
+Route::get('customer', [GoogleAuthController::class, 'signup'])->name('customer.create');
 Route::post('customer', [GoogleAuthController::class, 'store'])->middleware(['spam', 'throttle:5,10'])->name('customer.store');
 Route::get("/admin/orderlist", [AdminController::class, 'orderlist']);
 Route::get("/products/{name}/{id}", [FrontendController::class, 'show']);

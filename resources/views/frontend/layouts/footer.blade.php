@@ -39,20 +39,28 @@
           </div>
           <div>
               <h2 class="text-lg font-semibold mb-3">Follow Us</h2>
+              @php
+                  // Add the shop's real profile URLs; links left empty are hidden.
+                  $socials = [
+                      ['label' => 'Facebook',  'icon' => 'fa-facebook',  'url' => ''],
+                      ['label' => 'Instagram', 'icon' => 'fa-instagram', 'url' => ''],
+                      ['label' => 'TikTok',    'icon' => 'fa-tiktok',    'url' => ''],
+                      ['label' => 'WhatsApp',  'icon' => 'fa-whatsapp',  'url' => 'https://wa.me/9779864830276'],
+                  ];
+              @endphp
               <div class="flex space-x-4 text-white text-xl">
-                  <a href="#" class="hover:text-blue-400" aria-label="Facebook"><i
-                          class="fab fa-facebook"></i></a>
-                  <a href="#" class="hover:text-blue-400" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                  <a href="#" class="hover:text-blue-400" aria-label="Instagram"><i
-                          class="fab fa-instagram"></i></a>
-                  <a href="#" class="hover:text-blue-400" aria-label="LinkedIn"><i
-                          class="fab fa-linkedin"></i></a>
+                  @foreach ($socials as $s)
+                      @if ($s['url'])
+                          <a href="{{ $s['url'] }}" target="_blank" rel="noopener" class="hover:text-brand-orange"
+                             aria-label="{{ $s['label'] }}"><i class="fab {{ $s['icon'] }}" aria-hidden="true"></i></a>
+                      @endif
+                  @endforeach
               </div>
           </div>
       </div>
       <div class="border-t border-gray-700">
           <p class="text-center text-gray-100 text-sm py-4">
-              ©️ 2022 EG TECH SOLUTION. All Rights Reserved. |
+              © {{ date('Y') }} EG TECH SOLUTION. All Rights Reserved. |
               Designed and developed by
               <a href="https://broadtechinfosys.com.np" target="_blank" rel="noopener"
                   class="text-blue-400 hover:text-blue-500 transition-colors">

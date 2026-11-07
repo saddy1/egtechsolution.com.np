@@ -1,8 +1,7 @@
 @extends('frontend.layouts.app')
 
-@push('head')
-<title>Contact • EG Tech Solution</title>
-@endpush
+@section('title', $meta_title)
+@section('meta_description', $meta_description)
 
 @section('content')
 <section class="min-h-screen bg-gradient-to-b from-white to-slate-50 py-10 sm:py-16">
@@ -10,7 +9,7 @@
 
     {{-- Header --}}
     <div class="text-center">
-      <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Let’s talk</h1>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Contact our computer shop in Dhangadhi</h1>
       <p class="mt-2 text-slate-600">Questions, quotes, or support—send us a message and we’ll reply quickly.</p>
     </div>
 

@@ -43,8 +43,11 @@ class FrontendController extends Controller
         $maxFromDb = (int) Product::max('price') ?: 0;
         $maxPrice  = (int) $request->get('max_price', $maxFromDb);
 
-        // ----- Filters ON? -----
-        $hasFilters = $search !== '' || !empty($catIds) || $request->filled('max_price');
+        $brandIds = array_map('intval', (array) $request->get('brand', []));
+
+        // ----- Filters ON? (the Shop page always shows the product list) -----
+        $hasFilters = $request->routeIs('shop') || $search !== '' || !empty($catIds) || !empty($brandIds)
+            || $request->filled('max_price');
 
         // Common data for sidebar
         $categories = Category::withCount('products')
@@ -53,8 +56,8 @@ class FrontendController extends Controller
 
         // Banners
         $banners = Banner::orderBy('created_at', 'desc')->get();
-        $brands = Brand::withCount('products')->get();
-        $selectedBrandIds = $request->get('brand', []);
+        $brands = Brand::withCount('products')->orderBy('name')->get();
+        $selectedBrandIds = $brandIds;
 
 
         if ($hasFilters) {
@@ -69,6 +72,7 @@ class FrontendController extends Controller
                     });
                 })
                 ->when(!empty($catIds), fn($q) => $q->whereIn('category_id', $catIds))
+                ->when(!empty($brandIds), fn($q) => $q->whereIn('brand_id', $brandIds))
                 ->when($request->filled('max_price'), fn($q) => $q->where('price', '<=', $maxPrice))
                 ->orderByDesc('created_at')
                 ->paginate(50)
@@ -94,11 +98,13 @@ class FrontendController extends Controller
                 'maxPrice'            => $maxPrice,
                 'search'              => $search,
                 'cartCount'           => $cartCount,
+                'meta_title'          => $search !== '' ? "Search results for {$search} | EG Tech Solution" : 'Shop Computers & Electronics | EG Tech Solution',
+                'meta_description'    => 'Browse computers, laptops, accessories and electronics from EG Tech Solution in Dhangadhi, Kailali.',
             ]);
         }
 
         // ----- No filters -> render homepage/index as usual -----
-        $products = Product::with(['brand:id,name', 'category:id,name'])->listed()->latest()->get();
+        $products = collect(); // the landing page no longer lists every product; /shopping does
         $Randproducts = Product::listed()->inRandomOrder()->limit(16)->get();
         // One card per model, even when several of its variants are featured (cheapest wins).
         $featuredProducts = Product::where('is_featured', true)->where('is_active', true)->latest()->take(40)->get()
@@ -107,10 +113,9 @@ class FrontendController extends Controller
             ->sortByDesc('created_at')->take(8)->values();
 
         // SEO
-        $meta_title = "Buy Electronics, Gadgets, and More | EG Tech Solution | Best Prices in Nepal | Best Deals | Best Offers | Best Computer Shop | Best Electronics Store | Budget Friendly";
-        $meta_description = "Shop the latest electronics, laptops, mobiles, and gadgets at the best prices. Enjoy discounts, featured deals, and fast delivery from EG Tech Solution.";
-        $meta_keywords = "electronics Nepal, Buy electronics online Nepal, mobiles Nepal, laptop deals Nepal, smartphone accessories Nepal, best electronics shop Nepal, cheap electronics Nepal, gadgets Nepal, laptop price in Nepal, mobile price in Nepal, home appliances Nepal, smart TV Nepal, refrigerator deals Nepal, electronics store Biratnagar, electronics shop Kathmandu, electronic accessories Nepal, tech shop Nepal, tablet Nepal, gadgets & accessories Nepal, TV deals Nepal, gaming laptop Nepal, electronic sale Nepal, electronics offers Nepal, mobile shop near me, computer hardware Nepal, tech deals Nepal, smart home devices Nepal, earphones Nepal, power bank Nepal, smartwatch Nepal
-";
+        $meta_title = "Computer Shop in Dhangadhi | Laptops & Electronics | EG Tech Solution";
+        $meta_description = "EG Tech Solution is a computer shop in Dhangadhi, Kailali for laptops, desktop PCs, accessories and electronics with trusted local support.";
+        $meta_keywords = "computer shop Dhangadhi, laptop shop Dhangadhi, electronics shop Dhangadhi, computer accessories Kailali, EG Tech Solution";
         // If you still need brand/category ids for homepage:
         $brand = Product::distinct('brand_id')->pluck('brand_id');
         $categoryIds = Product::distinct('category_id')->pluck('category_id');
@@ -231,10 +236,10 @@ class FrontendController extends Controller
             'meta_keywords'
         ));
     }
-    public function shop()
+    public function shop(Request $request)
     {
         // The old shop template was built for columns that no longer exist and crashed.
-        // Send visitors to the working product listing (all products, with the filter sidebar).
-        return redirect()->route('home', ['max_price' => (int) Product::max('price')]);
+        // The Shop page now uses the same listing (sidebar filters + results) as search.
+        return $this->index($request);
     }
 }

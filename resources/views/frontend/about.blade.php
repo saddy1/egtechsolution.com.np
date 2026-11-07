@@ -1,8 +1,7 @@
 @extends('frontend.layouts.app')
 
-@push('head')
-<title>About • EG Tech Solution</title>
-@endpush
+@section('title', $meta_title)
+@section('meta_description', $meta_description)
 
 @section('content')
 <section class="relative">
@@ -16,7 +15,7 @@
         <div>
           <span class="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200">Since 2023</span>
           <h1 class="mt-4 text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900">
-            We build tech that people love to use.
+            Your local computer shop in Dhangadhi.
           </h1>
           <p class="mt-3 text-slate-600">
             EG Tech Solution is a Nepal-based company delivering quality laptops, computers, tablets, accessories and support.

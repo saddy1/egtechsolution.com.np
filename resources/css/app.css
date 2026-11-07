@@ -4,3 +4,65 @@
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
+
+/* Brand colours. Tailwind v4 reads these instead of an inline tailwind.config script. */
+@theme {
+    --color-brand-navy: #002e5b;
+    --color-brand-navy-dark: #001d3a;
+    --color-brand-orange: #f26b1d;
+    --color-brand-orange-dark: #d9560c;
+
+    /* Older class names still used in the header and other pages */
+    --color-theme-orange: #f26b1d;
+    --color-theme-dark: #011b08;
+    --color-theme-green: #c1d9d9;
+}
+
+/* ================= Landing page motion ================= */
+
+/* Sections fade up as they scroll into view (JS adds .is-visible) */
+.reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .6s cubic-bezier(.22, .61, .36, 1), transform .6s cubic-bezier(.22, .61, .36, 1);
+}
+.reveal.is-visible { opacity: 1; transform: none; }
+
+/* Gadget cards drifting in the hero */
+@keyframes float-y {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-14px); }
+}
+.float-slow { animation: float-y 6s ease-in-out infinite; }
+.float-mid  { animation: float-y 4.5s ease-in-out infinite; }
+.float-fast { animation: float-y 3.5s ease-in-out infinite; }
+
+/* Signals running along circuit lines */
+@keyframes circuit-run { to { stroke-dashoffset: -400; } }
+.circuit-pulse {
+    stroke-dasharray: 40 360;
+    animation: circuit-run 5s linear infinite;
+}
+
+/* Soft glow behind the laptop */
+@keyframes glow-pulse {
+    0%, 100% { opacity: .45; transform: scale(1); }
+    50%      { opacity: .7;  transform: scale(1.06); }
+}
+.glow-pulse { animation: glow-pulse 6s ease-in-out infinite; }
+
+/* Blinking cursor on the laptop screen */
+@keyframes caret-blink { 50% { opacity: 0; } }
+.caret-blink { animation: caret-blink 1s steps(1) infinite; }
+
+/* Endless brand strip */
+@keyframes marquee { to { transform: translateX(-50%); } }
+.marquee-track { animation: marquee 30s linear infinite; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+
+/* Respect visitors who turn off motion */
+@media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .float-slow, .float-mid, .float-fast, .circuit-pulse, .glow-pulse,
+    .caret-blink, .marquee-track { animation: none !important; }
+}
